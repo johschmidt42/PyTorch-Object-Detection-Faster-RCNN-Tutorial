@@ -124,30 +124,3 @@ class BackboneWithFPN(nn.Module):
         x = self.body(x)
         x = self.fpn(x)
         return x
-
-
-if __name__ == '__main__':
-    # get_resnet_backbone
-    names = ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']
-    for name in names:
-        model = get_resnet_backbone(backbone_name=name)
-
-        input = torch.rand(size=(1, 3, 512, 512))
-
-        with torch.no_grad():
-            model.eval()
-            out = model(input)
-            print(f'model: {name}', out.shape)
-
-    # get_resnet_fpn_backbone
-    names = ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']
-    for name in names:
-        model = get_resnet_fpn_backbone(backbone_name=name)
-
-        input = torch.rand(size=(1, 3, 512, 512))
-
-        with torch.no_grad():
-            model.eval()
-            out = model(input)
-            for key, value in out.items():
-                print(f'model: {name}', value.shape)

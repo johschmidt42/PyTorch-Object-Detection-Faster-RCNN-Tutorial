@@ -6,6 +6,7 @@ from torchvision.models.detection.image_list import ImageList
 from typing import Tuple
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
+
 class AnchorGenerator(nn.Module):
     # Slightly adapted AnchorGenerator from torchvision.
     # It returns anchors_over_all_feature_maps instead of anchors (concatenated for every feature layer)

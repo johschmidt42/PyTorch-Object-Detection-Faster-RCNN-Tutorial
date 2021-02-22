@@ -237,13 +237,3 @@ class FasterRCNN_lightning(pl.LightningModule):
                                                                   patience=30,
                                                                   min_lr=0)
         return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler, 'monitor': 'Validation_mAP'}
-
-
-if __name__ == '__main__':
-    model = get_fasterRCNN_resnet(num_classes=3,
-                                  backbone_name='resnet18',
-                                  anchor_size=((8,), (16,), (32,), (64,)),
-                                  aspect_ratios=((0.5, 1.0, 2.0),),
-                                  fpn=True,
-                                  min_size=512,
-                                  max_size=512)
