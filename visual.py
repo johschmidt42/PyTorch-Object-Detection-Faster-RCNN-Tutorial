@@ -54,25 +54,7 @@ def get_center_bounding_box(boxes: torch.tensor):
     return box_convert(boxes, in_fmt='xyxy', out_fmt='cxcywh')[:, :2]
 
 
-class DatasetViewer:
-    def __init__(self,
-                 dataset: ObjectDetectionDataSet,
-                 color_mapping: Dict,
-                 rccn_transform: GeneralizedRCNNTransform = None):
-        self.dataset = dataset
-        self.index = 0
-        self.color_mapping = color_mapping
-
-        # napari viewer instance
-        self.viewer = None
-
-        # rccn_transformer
-        self.rccn_transform = rccn_transform
-
-        # current image & shape layer
-        self.image_layer = None
-        self.shape_layer = None
-
+class ViewerBase:
     def napari(self):
         # IPython magic
         enable_gui_qt()
@@ -113,6 +95,49 @@ class DatasetViewer:
         self.index -= 1
         if self.index < 0:
             self.index = len(self.dataset) - 1
+
+    def show_sample(self):
+        """Overwrite method"""
+        pass
+
+    def create_image_layer(self, x, x_name):
+        return self.viewer.add_image(x, name=str(x_name))
+
+    def update_image_layer(self, image_layer, x, x_name):
+        """Replace the data and the name of a given image_layer"""
+        image_layer.data = x
+        image_layer.name = str(x_name)
+
+    def get_all_shape_layers(self):
+        return [layer for layer in self.viewer.layers if isinstance(layer, Shapes)]
+
+    def remove_all_shape_layers(self):
+        all_shape_layers = self.get_all_shape_layers()
+        for shape_layer in all_shape_layers:
+            self.remove_layer(shape_layer)
+
+    def remove_layer(self, layer):
+        self.viewer.layers.remove(layer)
+
+
+class DatasetViewer(ViewerBase):
+    def __init__(self,
+                 dataset: ObjectDetectionDataSet,
+                 color_mapping: Dict,
+                 rccn_transform: GeneralizedRCNNTransform = None):
+        self.dataset = dataset
+        self.index = 0
+        self.color_mapping = color_mapping
+
+        # napari viewer instance
+        self.viewer = None
+
+        # rccn_transformer
+        self.rccn_transform = rccn_transform
+
+        # current image & shape layer
+        self.image_layer = None
+        self.shape_layer = None
 
     def show_sample(self):
 
@@ -199,9 +224,6 @@ class DatasetViewer:
             'translation': [-1, 0],
         }
 
-    def create_image_layer(self, x, x_name):
-        return self.viewer.add_image(x, name=str(x_name))
-
     def create_shape_layer(self, y, y_name):
         boxes = self.get_boxes(y)
         labels = self.get_labels(y)
@@ -242,11 +264,6 @@ class DatasetViewer:
         self.set_colors_of_shapes(shape_layer, self.color_mapping)
 
         return shape_layer
-
-    def update_image_layer(self, image_layer, x, x_name):
-        """Replace the data and the name of a given image_layer"""
-        image_layer.data = x
-        image_layer.name = str(x_name)
 
     def update_shape_layer(self, shape_layer, y, y_name):
         """Remove all shapes and replace the data and the properties"""
@@ -304,17 +321,6 @@ class DatasetViewer:
     def get_unique_labels(self, shapes_layer):
         return set(shapes_layer.metadata['labels'])
 
-    def get_all_shape_layers(self):
-        return [layer for layer in self.viewer.layers if isinstance(layer, Shapes)]
-
-    def remove_all_shape_layers(self):
-        all_shape_layers = self.get_all_shape_layers()
-        for shape_layer in all_shape_layers:
-            self.remove_layer(shape_layer)
-
-    def remove_layer(self, layer):
-        self.viewer.layers.remove(layer)
-
     def select_all_shapes(self, shape_layer):
         """Selects all shapes within a shape_layer instance."""
         shape_layer.selected_data = set(range(shape_layer.nshapes))
@@ -344,13 +350,21 @@ class DatasetViewer:
         self.viewer.window.add_dock_widget(container, name='text_properties', area='left')
 
     def gui_score_slider(self, shape_layer):
+        if 'nms_slider' in self.viewer.window._dock_widgets.keys():
+            self.remove_gui('nms_slider')
+            self.shape_layer.events.name.disconnect(callback=self.shape_layer.events.name.callbacks[0])
+
         container = self.create_gui_score_slider(shape_layer)
-        self.slider_score = container
+        self.slider = container
         self.viewer.window.add_dock_widget(container, name='score_slider', area='left')
 
     def gui_nms_slider(self, shape_layer):
+        if 'score_slider' in self.viewer.window._dock_widgets.keys():
+            self.remove_gui('score_slider')
+            self.shape_layer.events.name.disconnect(callback=self.shape_layer.events.name.callbacks[0])
+
         container = self.create_gui_nms_slider(shape_layer)
-        self.slider_nms = container
+        self.slider = container
         self.viewer.window.add_dock_widget(container, name='nms_slider', area='left')
 
     def remove_gui(self, name):
@@ -391,21 +405,17 @@ class DatasetViewer:
             self.select_all_shapes(shape_layer)
             shape_layer.remove_selected()
 
-            BOXES = 'boxes_nms' if 'boxes_nms' in shape_layer.metadata.keys() else 'scores'
-            LABELS = 'labels_nms' if 'labels_nms' in shape_layer.metadata.keys() else 'labels'
-            SCORES = 'scores_nms' if 'scores_nms' in shape_layer.metadata.keys() else 'scores'
-
             # create mask and new information
-            mask = np.where(shape_layer.metadata[SCORES] > slider.value)
-            new_boxes = np.asarray(shape_layer.metadata[BOXES])[mask]
-            new_labels = shape_layer.metadata[LABELS][mask]
-            new_scores = shape_layer.metadata[SCORES][mask]
+            mask = np.where(shape_layer.metadata['scores'] > slider.value)
+            new_boxes = np.asarray(shape_layer.metadata['boxes'])[mask]
+            new_labels = shape_layer.metadata['labels'][mask]
+            new_scores = shape_layer.metadata['scores'][mask]
 
             # set the current properties as workaround
             shape_layer.current_properties['labels'] = new_labels
             shape_layer.current_properties['scores'] = new_scores
 
-            # # add shapes to layer
+            # add shapes to layer
             if new_boxes.size > 0:
                 shape_layer.add(list(new_boxes))
 
@@ -418,7 +428,7 @@ class DatasetViewer:
 
         slider.changed.connect(change_boxes)
 
-        # invoke nms
+        # invoke scoring
         container.Score.value = 0.0
 
         # event triggered when the name of the shape layer changes
@@ -539,7 +549,7 @@ class DatasetViewerSingle(DatasetViewer):
         return {'x': x, 'x_name': x_name}
 
 
-class Annotator(DatasetViewer):
+class Annotator(ViewerBase):
     def __init__(self,
                  image_ids: pathlib.Path,
                  annotation_ids: pathlib.Path = None,
@@ -765,7 +775,7 @@ class Annotator(DatasetViewer):
                 print(f'Annotation {str(name)} saved to {directory}')
 
 
-class AnchorViewer:
+class AnchorViewer(ViewerBase):
     def __init__(self,
                  image: torch.tensor,
                  rcnn_transform: GeneralizedRCNNTransform,
