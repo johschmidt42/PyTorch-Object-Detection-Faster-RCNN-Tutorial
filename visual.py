@@ -56,7 +56,7 @@ def get_center_bounding_box(boxes: torch.tensor):
 
 class ViewerBase:
     def napari(self):
-        # IPython magic
+        # IPython magic for napari < 0.4.8
         enable_gui_qt()
 
         # napari
@@ -251,6 +251,9 @@ class DatasetViewer(ViewerBase):
                                              name=y_name,
                                              text=text_parameters)
 
+        # make non-editable
+        shape_layer.editable = False
+
         # save some information in the metadata
         self.save_to_metadata(shape_layer, 'boxes', boxes)
         self.save_to_metadata(shape_layer, 'labels', labels)
@@ -315,8 +318,12 @@ class DatasetViewer(ViewerBase):
         shape_layer.metadata = {}
 
     def check_if_rgb(self, x):
-        # TODO: Check if rgb
-        return True
+        """Checks if the shape of the first dim (channel dim) is 3"""
+        # TODO: RGBA images have 4 channels -> raise Error
+        if x.shape[0] == 3:
+            return True
+        else:
+            raise AssertionError(f'The channel dimension is supposed to be 3 for RGB images. This image has a channel dimension of size {x.shape[0]}')
 
     def get_unique_labels(self, shapes_layer):
         return set(shapes_layer.metadata['labels'])
@@ -327,7 +334,10 @@ class DatasetViewer(ViewerBase):
 
     def select_all_shapes_label(self, shape_layer, label):
         """Select all shapes of certain label"""
-        # TODO: Check if label exists
+        if label not in self.get_unique_labels(shape_layer):
+            raise ValueError(
+                f'Label {label} does not exist. Available labels are {self.get_unique_labels(shape_layer)}!')
+
         indices = set(self.get_indices_of_shapes(shape_layer, label))
         shape_layer.selected_data = indices
 
