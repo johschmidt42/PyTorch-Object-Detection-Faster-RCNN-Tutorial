@@ -5,12 +5,13 @@ from torchvision.ops import box_convert
 from transformations import map_class_to_int
 from typing import List, Dict
 from transformations import ComposeDouble, ComposeSingle
+from utils import read_json
 
 
 class ObjectDetectionDataSet(torch.utils.data.Dataset):
     """
     Builds a dataset with images and their respective targets.
-    A target is expected to be a pickled file of a dict
+    A target is expected to be a json file
     and should contain at least a 'boxes' and a 'labels' key.
     inputs and targets are expected to be a list of pathlib.Path objects.
 
@@ -111,7 +112,7 @@ class ObjectDetectionDataSet(torch.utils.data.Dataset):
 
     @staticmethod
     def read_images(inp, tar):
-        return imread(inp), torch.load(tar)
+        return imread(inp), read_json(tar)
 
 
 class ObjectDetectionDatasetSingle(torch.utils.data.Dataset):
