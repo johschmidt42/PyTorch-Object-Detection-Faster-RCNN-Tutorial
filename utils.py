@@ -1,8 +1,8 @@
 import pathlib
 import numpy as np
 import torch
+import json
 from typing import List
-from datasets import ObjectDetectionDataSet
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
 
@@ -12,6 +12,18 @@ def get_filenames_of_path(path: List[pathlib.Path], ext: str = '*'):
     """
     filenames = [file for file in path.glob(ext) if file.is_file()]
     return filenames
+
+
+def read_json(path: pathlib.Path):
+    with open(str(path), 'r') as fp:  # fp is the file  pointer
+        file = json.loads(s=fp.read())
+
+    return file
+
+
+def save_json(obj, path: pathlib.Path):
+    with open(path, 'w') as fp:  # fp is the file  pointer
+        json.dump(obj=obj, fp=fp, indent=4, sort_keys=False)
 
 
 def collate_double(batch):
@@ -50,7 +62,7 @@ def enable_gui_qt():
     ipython.magic('gui qt')
 
 
-def stats_dataset(dataset: ObjectDetectionDataSet, rcnn_transform: GeneralizedRCNNTransform = False):
+def stats_dataset(dataset, rcnn_transform: GeneralizedRCNNTransform = False):
     """
     Iterates over the dataset and returns some stats.
     Can be useful to pick the right anchor box sizes.
