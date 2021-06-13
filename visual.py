@@ -5,6 +5,7 @@ from typing import Dict, Tuple
 import napari
 import numpy as np
 import torch
+import json
 from napari.layers import Shapes
 from skimage.io import imread
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
@@ -13,6 +14,7 @@ from datasets import ObjectDetectionDataSet, ObjectDetectionDatasetSingle
 from transformations import re_normalize
 from utils import color_mapping_func
 from utils import enable_gui_qt
+from utils import read_json, save_json
 
 
 def make_bbox_napari(bbox, reverse=False):
@@ -323,7 +325,8 @@ class DatasetViewer(ViewerBase):
         if x.shape[0] == 3:
             return True
         else:
-            raise AssertionError(f'The channel dimension is supposed to be 3 for RGB images. This image has a channel dimension of size {x.shape[0]}')
+            raise AssertionError(
+                f'The channel dimension is supposed to be 3 for RGB images. This image has a channel dimension of size {x.shape[0]}')
 
     def get_unique_labels(self, shapes_layer):
         return set(shapes_layer.metadata['labels'])
@@ -357,7 +360,7 @@ class DatasetViewer(ViewerBase):
 
     def gui_text_properties(self, shape_layer):
         container = self.create_gui_text_properties(shape_layer)
-        self.viewer.window.add_dock_widget(container, name='text_properties', area='left')
+        self.viewer.window.add_dock_widget(container, name='text_properties', area='right')
 
     def gui_score_slider(self, shape_layer):
         if 'nms_slider' in self.viewer.window._dock_widgets.keys():
@@ -366,7 +369,7 @@ class DatasetViewer(ViewerBase):
 
         container = self.create_gui_score_slider(shape_layer)
         self.slider = container
-        self.viewer.window.add_dock_widget(container, name='score_slider', area='left')
+        self.viewer.window.add_dock_widget(container, name='score_slider', area='right')
 
     def gui_nms_slider(self, shape_layer):
         if 'score_slider' in self.viewer.window._dock_widgets.keys():
@@ -375,7 +378,7 @@ class DatasetViewer(ViewerBase):
 
         container = self.create_gui_nms_slider(shape_layer)
         self.slider = container
-        self.viewer.window.add_dock_widget(container, name='nms_slider', area='left')
+        self.viewer.window.add_dock_widget(container, name='nms_slider', area='right')
 
     def remove_gui(self, name):
         widget = self.viewer.window._dock_widgets[name]
@@ -405,7 +408,7 @@ class DatasetViewer(ViewerBase):
     def create_gui_score_slider(self, shape_layer):
         from magicgui.widgets import FloatSlider, Container, Label
 
-        slider = FloatSlider(min=0.0, max=1.0, step=0.05, name='Score', value=0.0)
+        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='Score', value=0.0)
         slider_label = Label(name='Score_threshold', value=0.0)
 
         container = Container(widgets=[slider, slider_label])
@@ -449,7 +452,7 @@ class DatasetViewer(ViewerBase):
     def create_gui_nms_slider(self, shape_layer):
         from magicgui.widgets import FloatSlider, Container, Label
         from torchvision.ops import nms
-        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='NMS')
+        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='NMS', value=0.0)
         slider_label = Label(name='IoU_threshold')
 
         container = Container(widgets=[slider, slider_label])
@@ -671,7 +674,7 @@ class Annotator(ViewerBase):
             if index_list:
                 # TODO: check if it finds more than one index
                 idx = index_list[0]  # get index value of index_list
-                annotation_file = torch.load(annotation_id)  # read file
+                annotation_file = read_json(annotation_id)  # read file
 
                 # store them as np.ndarrays
                 boxes = np.array(annotation_file['boxes'])  # get boxes
@@ -751,17 +754,20 @@ class Annotator(ViewerBase):
         """Saves the current annotations to disk."""
         self.save_annotations(self.annotation_object)  # Save annotations in current annotation_object
 
-        boxes = [make_bbox_napari(box, reverse=True) for box in self.annotation_object.boxes]
-        labels = self.annotation_object.labels
+        boxes = [make_bbox_napari(box, reverse=True).tolist() for box in self.annotation_object.boxes]
+        labels = self.annotation_object.labels.tolist()
         if name is None:
-            name = pathlib.Path(self.annotation_object.name).with_suffix('.pt')
+            name = pathlib.Path(self.annotation_object.name).with_suffix('.json')
 
         file = {
             'labels': labels,
             'boxes': boxes
         }
 
-        torch.save(file, directory / name)
+        save_json(file, path=directory / name)
+
+        # with open(directory / name, 'w') as fp:  # fp is the file  pointer
+        #     json.dump(obj=file, fp=fp, indent=4, sort_keys=False)
 
         print(f'Annotation {str(name)} saved to {directory}')
 
@@ -771,16 +777,16 @@ class Annotator(ViewerBase):
 
         for annotation_object in self.annotations:
             if annotation_object:
-                boxes = [make_bbox_napari(box, reverse=True) for box in annotation_object.boxes]
-                labels = annotation_object.labels
-                name = pathlib.Path(annotation_object.name).with_suffix('.pt')
+                boxes = [make_bbox_napari(box, reverse=True).tolist() for box in annotation_object.boxes]
+                labels = annotation_object.labels.tolist()
+                name = pathlib.Path(annotation_object.name).with_suffix('.json')
 
                 file = {
                     'labels': labels,
                     'boxes': boxes
                 }
 
-                torch.save(file, directory / name)
+                save_json(file, path=directory / name)
 
                 print(f'Annotation {str(name)} saved to {directory}')
 

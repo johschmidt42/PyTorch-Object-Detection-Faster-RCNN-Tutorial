@@ -1,7 +1,9 @@
 import albumentations as A
 import numpy as np
+import torch
 from sklearn.externals._pilutil import bytescale
 from typing import List, Callable
+from torchvision.ops import nms
 
 
 def normalize_01(inp: np.ndarray):
@@ -66,6 +68,37 @@ def map_class_to_int(labels: List[str], mapping: dict):
         dummy[labels == key] = value
 
     return dummy.astype(np.uint8)
+
+
+def apply_nms(target: dict, iou_threshold):
+    """Non-maximum Suppression"""
+    boxes = torch.tensor(target['boxes'])
+    labels = torch.tensor(target['labels'])
+    scores = torch.tensor(target['scores'])
+
+    if boxes.size()[0] > 0:
+        mask = nms(boxes, scores, iou_threshold=iou_threshold)
+        mask = (np.array(mask),)
+
+        target['boxes'] = np.asarray(boxes)[mask]
+        target['labels'] = np.asarray(labels)[mask]
+        target['scores'] = np.asarray(scores)[mask]
+
+    return target
+
+
+def apply_score_threshold(target: dict, score_threshold):
+    """Removes bounding box predictions with low scores."""
+    boxes = target['boxes']
+    labels = target['labels']
+    scores = target['scores']
+
+    mask = np.where(scores > score_threshold)
+    target['boxes'] = boxes[mask]
+    target['labels'] = labels[mask]
+    target['scores'] = scores[mask]
+
+    return target
 
 
 class Repr:
@@ -133,6 +166,7 @@ class AlbumentationWrapper(Repr):
     Bounding boxes cannot be larger than the spatial image's dimensions.
     Use Clip() if your bounding boxes are outside of the image, before using this wrapper.
     """
+
     def __init__(self, albumentation: Callable, format: str = 'pascal_voc'):
         self.albumentation = albumentation
         self.format = format
@@ -161,6 +195,7 @@ class Clip(Repr):
     Bounding boxes are expected to be in xyxy format.
     Example: x_value=224 but x_shape=200 -> x1=199
     """
+
     def __call__(self, inp: np.ndarray, tar: dict):
         new_boxes = clip_bbs(inp=inp, bbs=tar['boxes'])
         tar['boxes'] = new_boxes
