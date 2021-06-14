@@ -20,13 +20,13 @@ params = {
     'INPUT_DIR': r'F:\Juan\object_detection\training_data',
     'PREDICTIONS_PATH': r'F:\Juan\object_detection\predictions',
     'MODEL_DIR': r'F:\Juan\object_detection\POR-22\checkpoints\epoch=65-step=197.ckpt',
-    # 'DOWNLOAD_PATH': r'C:\Users\johan\Desktop\Johannes\Pores',
+    # 'DOWNLOAD_PATH': r'C:\Users\johan\Desktop\Johannes\pores',
     'OWNER': 'johschmidt42',
-    'PROJECT': 'Pores',
+    'PROJECT': 'pores',
 }
 
 # %% input files
-inputs = get_filenames_of_path(pathlib.Path(params['INPUT_DIR']) / 'input_224x224_bb')
+inputs = get_filenames_of_path(pathlib.Path(params['INPUT_DIR']) / 'input_224x224')
 inputs.sort()
 
 inputs = inputs[-6:]
