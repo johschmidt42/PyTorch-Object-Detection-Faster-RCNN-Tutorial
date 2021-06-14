@@ -6,7 +6,7 @@ from visual import Annotator
 from utils import get_filenames_of_path
 
 dir_images = pathlib.Path(r"F:\Juan\object_detection\training_data")
-image_files = get_filenames_of_path(dir_images / 'input_224x224_bb')
+image_files = get_filenames_of_path(dir_images / 'input_224x224')
 
 annotator = Annotator(image_ids=image_files)
 annotator.napari()
@@ -22,7 +22,7 @@ from visual import Annotator
 from utils import get_filenames_of_path
 
 dir_images = pathlib.Path(r"F:\Juan\object_detection\training_data")
-image_files = get_filenames_of_path(dir_images / 'input_224x224_bb')
+image_files = get_filenames_of_path(dir_images / 'input_224x224')
 dir_annotations = pathlib.Path(r"F:\Juan\object_detection\training_data")
 annotation_files = get_filenames_of_path(dir_annotations / 'target_224x224_bb_camilla')
 

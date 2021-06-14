@@ -19,7 +19,7 @@ params = {'EXPERIMENT': 'POR-22',
           'DOWNLOAD': True,
           'DOWNLOAD_PATH': r'C:\Users\johan\Desktop\Johannes\Pores',
           'OWNER': 'johschmidt42',
-          'PROJECT': 'Pores',
+          'PROJECT': 'pores',
           }
 
 api_key = get_api_key()  # get the personal api key

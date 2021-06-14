@@ -19,8 +19,8 @@ params = {'SEED': 42,
 root = pathlib.Path(r"F:\Juan\object_detection\training_data")
 
 # %% input and target files
-inputs = get_filenames_of_path(root / 'input_224x224_bb')
-targets = get_filenames_of_path(root / 'target_224x224_bb_camilla')
+inputs = get_filenames_of_path(root / 'input_224x224')
+targets = get_filenames_of_path(root / 'target_224x224')
 
 inputs.sort()
 targets.sort()

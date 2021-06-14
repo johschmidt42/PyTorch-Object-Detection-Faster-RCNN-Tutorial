@@ -1,0 +1,1 @@
+Instructions to train, test and evaluate an object detector. F1 practical course.
