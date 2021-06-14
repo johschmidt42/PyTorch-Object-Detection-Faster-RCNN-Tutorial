@@ -25,7 +25,7 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 # hyper-parameters
-params = {'BATCH_SIZE': 6,
+params = {'BATCH_SIZE': 4,
           'LR': 0.01,
           'PRECISION': 32,
           'CLASSES': 3,
@@ -44,8 +44,9 @@ params = {'BATCH_SIZE': 6,
           'IMG_MEAN': [0.485, 0.456, 0.406],
           'IMG_STD': [0.229, 0.224, 0.225],
           'IOU_THRESHOLD': 0.5,
-          'GPU': None,  # None -> training on cpu
-          'DEFAULT_ROOT_DIR': pathlib.Path.home()
+          'GPU': 1,  # None -> training on cpu
+          'DEFAULT_ROOT_DIR': pathlib.Path.home(),
+          'UPLOAD_MODEL': False
           }
 
 # api key
@@ -184,11 +185,12 @@ trainer.test(ckpt_path='best', test_dataloaders=dataloader_test)
 log_packages_neptune(neptune_logger)
 
 # log model
-checkpoint_path = pathlib.Path(checkpoint_callback.best_model_path)
-log_model_neptune(checkpoint_path=checkpoint_path,
-                  save_directory=pathlib.Path.home(),
-                  name='best_model.pt',
-                  neptune_logger=neptune_logger)
+if params['UPLOAD_MODEL']:
+    checkpoint_path = pathlib.Path(checkpoint_callback.best_model_path)
+    log_model_neptune(checkpoint_path=checkpoint_path,
+                      save_directory=pathlib.Path.home(),
+                      name='best_model.pt',
+                      neptune_logger=neptune_logger)
 
 # stop logger
 neptune_logger.experiment.stop()
