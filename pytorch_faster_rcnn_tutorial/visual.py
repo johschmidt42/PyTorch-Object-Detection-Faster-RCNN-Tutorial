@@ -5,11 +5,17 @@ from typing import Dict, Tuple
 import napari
 import numpy as np
 import torch
+from magicgui.widgets import Combobox, Slider
+from magicgui.widgets import FloatSlider, Container, Label
 from napari.layers import Shapes
 from skimage.io import imread
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
+from torchvision.ops import box_convert
+from torchvision.ops import nms
 
-from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDataSet, ObjectDetectionDatasetSingle
+from pytorch_faster_rcnn_tutorial.anchor_generator import get_anchor_boxes
+from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDataSet
+from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDatasetSingle
 from pytorch_faster_rcnn_tutorial.transformations import re_normalize
 from pytorch_faster_rcnn_tutorial.utils import color_mapping_func
 from pytorch_faster_rcnn_tutorial.utils import enable_gui_qt
@@ -51,7 +57,6 @@ def make_bbox_napari(bbox, reverse=False):
 
 def get_center_bounding_box(boxes: torch.tensor):
     """Returns the center points of given bounding boxes."""
-    from torchvision.ops import box_convert
     return box_convert(boxes, in_fmt='xyxy', out_fmt='cxcywh')[:, :2]
 
 
@@ -384,8 +389,6 @@ class DatasetViewer(ViewerBase):
         self.viewer.window.remove_dock_widget(widget)
 
     def create_gui_text_properties(self, shape_layer):
-        from magicgui.widgets import Combobox, Container, Slider
-
         TextColor = Combobox(choices=shape_layer._colors, name='text color', value='white')
         TextSize = Slider(min=1, max=50, name='text size', value=1)
 
@@ -405,8 +408,6 @@ class DatasetViewer(ViewerBase):
         return container
 
     def create_gui_score_slider(self, shape_layer):
-        from magicgui.widgets import FloatSlider, Container, Label
-
         slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='Score', value=0.0)
         slider_label = Label(name='Score_threshold', value=0.0)
 
@@ -449,8 +450,6 @@ class DatasetViewer(ViewerBase):
         return container
 
     def create_gui_nms_slider(self, shape_layer):
-        from magicgui.widgets import FloatSlider, Container, Label
-        from torchvision.ops import nms
         slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='NMS', value=0.0)
         slider_label = Label(name='IoU_threshold')
 
@@ -827,7 +826,6 @@ class AnchorViewer(ViewerBase):
         self.show_sample()
 
     def get_anchors(self):
-        from anchor_generator import get_anchor_boxes
         return get_anchor_boxes(self.image,
                                 self.rcnn_transform,
                                 self.feature_map_size,

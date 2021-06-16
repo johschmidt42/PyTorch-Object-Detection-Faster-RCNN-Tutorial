@@ -1,4 +1,4 @@
-# Imports
+# imports
 import os
 import pathlib
 
@@ -24,7 +24,8 @@ from pytorch_faster_rcnn_tutorial.utils import log_packages_neptune
 
 # hyper-parameters
 params = {'BATCH_SIZE': 2,
-          'OWNER': 'johschmidt42',  # set your name here, e.g. johndoal.transformations import ComposeDouble
+          'OWNER': 'johschmidt42',  # set your name here, e.g. johndoe22
+          'SAVE_DIR': None,  # checkpoints will be saved to cwd
           'LOG_MODEL': False,  # whether to log the model to neptune after training
           'GPU': 1,  # set to None for cpu training
           'LR': 0.001,
@@ -47,7 +48,12 @@ params = {'BATCH_SIZE': 2,
 
 
 def main():
+    # api key
     api_key = os.environ['NEPTUNE']  # if this throws an error, you didn't set your env var
+
+    # save directory
+    if not params['SAVE_DIR']:
+        save_dir = os.getcwd()
 
     # root directory
     root = pathlib.Path('pytorch_faster_rcnn_tutorial/data/heads')
@@ -171,7 +177,7 @@ def main():
     trainer = Trainer(gpus=params['GPU'],
                       precision=params['PRECISION'],  # try 16 with enable_pl_optimizer=False
                       callbacks=[checkpoint_callback, learningrate_callback, early_stopping_callback],
-                      default_root_dir='pytorch_faster_rcnn_tutorial/data/heads',  # where checkpoints are saved to
+                      default_root_dir=save_dir,  # where checkpoints are saved to
                       logger=neptune_logger,
                       log_every_n_steps=1,
                       num_sanity_val_steps=0,
