@@ -5,16 +5,15 @@ from typing import Dict, Tuple
 import napari
 import numpy as np
 import torch
-import json
 from napari.layers import Shapes
 from skimage.io import imread
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
-from datasets import ObjectDetectionDataSet, ObjectDetectionDatasetSingle
-from transformations import re_normalize
-from utils import color_mapping_func
-from utils import enable_gui_qt
-from utils import read_json, save_json
+from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDataSet, ObjectDetectionDatasetSingle
+from pytorch_faster_rcnn_tutorial.transformations import re_normalize
+from pytorch_faster_rcnn_tutorial.utils import color_mapping_func
+from pytorch_faster_rcnn_tutorial.utils import enable_gui_qt
+from pytorch_faster_rcnn_tutorial.utils import read_json, save_json
 
 
 def make_bbox_napari(bbox, reverse=False):

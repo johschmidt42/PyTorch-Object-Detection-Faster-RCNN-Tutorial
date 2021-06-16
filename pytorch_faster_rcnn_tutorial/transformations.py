@@ -1,8 +1,9 @@
+from typing import List, Callable
+
 import albumentations as A
 import numpy as np
 import torch
 from sklearn.externals._pilutil import bytescale
-from typing import List, Callable
 from torchvision.ops import nms
 
 
