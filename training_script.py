@@ -10,19 +10,21 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, Ea
 from pytorch_lightning.loggers.neptune import NeptuneLogger
 from torch.utils.data import DataLoader
 
-from datasets import ObjectDetectionDataSet
-from faster_RCNN import FasterRCNN_lightning
-from faster_RCNN import get_fasterRCNN_resnet
-from transformations import ComposeDouble, Clip, AlbumentationWrapper, FunctionWrapperDouble
-from transformations import normalize_01
-from utils import get_filenames_of_path, collate_double
-from utils import log_mapping_neptune
-from utils import log_model_neptune
-from utils import log_packages_neptune
+from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDataSet
+from pytorch_faster_rcnn_tutorial.faster_RCNN import FasterRCNN_lightning
+from pytorch_faster_rcnn_tutorial.faster_RCNN import get_fasterRCNN_resnet
+from pytorch_faster_rcnn_tutorial.transformations import Clip, ComposeDouble
+from pytorch_faster_rcnn_tutorial.transformations import AlbumentationWrapper
+from pytorch_faster_rcnn_tutorial.transformations import FunctionWrapperDouble
+from pytorch_faster_rcnn_tutorial.transformations import normalize_01
+from pytorch_faster_rcnn_tutorial.utils import get_filenames_of_path, collate_double
+from pytorch_faster_rcnn_tutorial.utils import log_mapping_neptune
+from pytorch_faster_rcnn_tutorial.utils import log_model_neptune
+from pytorch_faster_rcnn_tutorial.utils import log_packages_neptune
 
 # hyper-parameters
 params = {'BATCH_SIZE': 2,
-          'OWNER': 'johschmidt42',  # set your name here, e.g. johndoe55
+          'OWNER': 'johschmidt42',  # set your name here, e.g. johndoal.transformations import ComposeDouble
           'LOG_MODEL': False,  # whether to log the model to neptune after training
           'GPU': 1,  # set to None for cpu training
           'LR': 0.001,
@@ -48,7 +50,7 @@ def main():
     api_key = os.environ['NEPTUNE']  # if this throws an error, you didn't set your env var
 
     # root directory
-    root = pathlib.Path('heads')
+    root = pathlib.Path('pytorch_faster_rcnn_tutorial/data/heads')
 
     # input and target files
     inputs = get_filenames_of_path(root / 'input')
@@ -169,11 +171,10 @@ def main():
     trainer = Trainer(gpus=params['GPU'],
                       precision=params['PRECISION'],  # try 16 with enable_pl_optimizer=False
                       callbacks=[checkpoint_callback, learningrate_callback, early_stopping_callback],
-                      default_root_dir='heads',  # where checkpoints are saved to
+                      default_root_dir='pytorch_faster_rcnn_tutorial/data/heads',  # where checkpoints are saved to
                       logger=neptune_logger,
                       log_every_n_steps=1,
                       num_sanity_val_steps=0,
-                      enable_pl_optimizer=False,  # False seems to be necessary for half precision
                       )
 
     # start training
