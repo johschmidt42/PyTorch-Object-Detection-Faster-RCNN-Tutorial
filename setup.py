@@ -19,7 +19,7 @@ setuptools.setup(
         'albumentations',
         'pytorch-lightning',
         'numpy',
-        'pytorch',
+        'torch',
         'torchvision',
         'scikit-image',
         'sklearn',
