@@ -1,28 +1,38 @@
-import pathlib
-import numpy as np
-import torch
 import json
-from typing import List
+import os
+import pathlib
+
+import importlib_metadata
+import numpy as np
+import pandas as pd
+import torch
+from IPython import get_ipython
+from neptunecontrib.api import log_table
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
+from torchvision.ops import box_convert, box_area
+
+from pytorch_faster_rcnn_tutorial.metrics.bounding_box import BoundingBox
+from pytorch_faster_rcnn_tutorial.metrics.enumerators import BBFormat, BBType
 
 
-def get_filenames_of_path(path: List[pathlib.Path], ext: str = '*'):
+def get_filenames_of_path(path: pathlib.Path, ext: str = '*'):
     """
     Returns a list of files in a directory/path. Uses pathlib.
     """
     filenames = [file for file in path.glob(ext) if file.is_file()]
+    assert len(filenames) > 0, f'No files found in path: {path}'
     return filenames
 
 
 def read_json(path: pathlib.Path):
-    with open(str(path), 'r') as fp:  # fp is the file  pointer
+    with open(str(path), 'r') as fp:  # fp is the file pointer
         file = json.loads(s=fp.read())
 
     return file
 
 
 def save_json(obj, path: pathlib.Path):
-    with open(path, 'w') as fp:  # fp is the file  pointer
+    with open(path, 'w') as fp:  # fp is the file pointer
         json.dump(obj=obj, fp=fp, indent=4, sort_keys=False)
 
 
@@ -56,8 +66,6 @@ def color_mapping_func(labels, mapping):
 
 def enable_gui_qt():
     """Performs the magic command %gui qt"""
-    from IPython import get_ipython
-
     ipython = get_ipython()
     ipython.magic('gui qt')
 
@@ -67,7 +75,6 @@ def stats_dataset(dataset, rcnn_transform: GeneralizedRCNNTransform = False):
     Iterates over the dataset and returns some stats.
     Can be useful to pick the right anchor box sizes.
     """
-    from torchvision.ops import box_convert, box_area
     stats = {
         'image_height': [],
         'image_width': [],
@@ -112,11 +119,8 @@ def stats_dataset(dataset, rcnn_transform: GeneralizedRCNNTransform = False):
     return stats
 
 
-def from_file_to_BoundingBox(file_name: pathlib.Path, groundtruth: bool = True):
+def from_file_to_boundingbox(file_name: pathlib.Path, groundtruth: bool = True):
     """Returns a list of BoundingBox objects from groundtruth or prediction."""
-    from metrics.bounding_box import BoundingBox
-    from metrics.enumerators import BBFormat, BBType
-
     file = torch.load(file_name)
     labels = file['labels']
     boxes = file['boxes']
@@ -132,11 +136,8 @@ def from_file_to_BoundingBox(file_name: pathlib.Path, groundtruth: bool = True):
                         confidence=s) for bb, l, s in zip(boxes, labels, scores)]
 
 
-def from_dict_to_BoundingBox(file: dict, name: str, groundtruth: bool = True):
+def from_dict_to_boundingbox(file: dict, name: str, groundtruth: bool = True):
     """Returns list of BoundingBox objects from groundtruth or prediction."""
-    from metrics.bounding_box import BoundingBox
-    from metrics.enumerators import BBFormat, BBType
-
     labels = file['labels']
     boxes = file['boxes']
     scores = np.array(file['scores'].cpu()) if not groundtruth else [None] * len(boxes)
@@ -153,11 +154,6 @@ def from_dict_to_BoundingBox(file: dict, name: str, groundtruth: bool = True):
 
 def log_packages_neptune(neptune_logger):
     """Uses the neptunecontrib.api to log the packages of the current python env."""
-    from neptunecontrib.api import log_table
-    import pandas as pd
-
-    import importlib_metadata
-
     dists = importlib_metadata.distributions()
     packages = {idx: (dist.metadata['Name'], dist.version) for idx, dist in enumerate(dists)}
 
@@ -168,9 +164,6 @@ def log_packages_neptune(neptune_logger):
 
 def log_mapping_neptune(mapping: dict, neptune_logger):
     """Uses the neptunecontrib.api to log a class mapping."""
-    from neptunecontrib.api import log_table
-    import pandas as pd
-
     mapping_df = pd.DataFrame.from_dict(mapping, orient='index', columns=['class_value'])
     log_table(name='mapping', table=mapping_df, experiment=neptune_logger.experiment)
 
@@ -180,7 +173,6 @@ def log_model_neptune(checkpoint_path: pathlib.Path,
                       name: str,
                       neptune_logger):
     """Saves the model to disk, uploads it to neptune and removes it again."""
-    import os
     checkpoint = torch.load(checkpoint_path)
     model = checkpoint['hyper_parameters']['model']
     torch.save(model.state_dict(), save_directory / name)
