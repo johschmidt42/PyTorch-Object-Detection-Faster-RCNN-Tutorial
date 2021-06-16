@@ -19,13 +19,11 @@ setuptools.setup(
         'albumentations',
         'pytorch-lightning',
         'numpy',
-        'torch',
-        'torchvision',
         'scikit-image',
         'sklearn',
         'importlib_metadata',
         'neptune-contrib',
-        'IPython',
+        'jupyterlab',
         'magicgui'
     ]
 )
