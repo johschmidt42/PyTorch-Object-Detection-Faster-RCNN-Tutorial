@@ -1,5 +1,5 @@
-import torchvision.models as models
 import torch
+import torchvision.models as models
 from torch import nn
 from torchvision.models import resnet
 from torchvision.models._utils import IntermediateLayerGetter

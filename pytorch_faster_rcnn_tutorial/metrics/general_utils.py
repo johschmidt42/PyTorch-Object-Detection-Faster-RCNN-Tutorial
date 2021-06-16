@@ -5,7 +5,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5 import QtCore, QtGui
-from metrics.enumerators import BBFormat
+
+from pytorch_faster_rcnn_tutorial.metrics.enumerators import BBFormat
 
 
 def get_files_recursively(directory, extension="*"):

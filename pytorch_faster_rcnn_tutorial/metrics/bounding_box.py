@@ -1,6 +1,6 @@
-from metrics.enumerators import BBFormat, BBType, CoordinatesType
-from metrics.general_utils import (convert_to_absolute_values,
-                                   convert_to_relative_values)
+from pytorch_faster_rcnn_tutorial.metrics.enumerators import BBFormat, BBType, CoordinatesType
+from pytorch_faster_rcnn_tutorial.metrics.general_utils import (convert_to_absolute_values,
+                                                                convert_to_relative_values)
 
 
 class BoundingBox:
@@ -395,5 +395,3 @@ class BoundingBox:
     def get_average_area(bounding_boxes):
         areas = [bb.get_area() for bb in bounding_boxes]
         return sum(areas) / len(areas)
-
-

@@ -1,9 +1,9 @@
+from typing import Tuple
+
 import torch
 from torch import nn
-
 from torch.jit.annotations import List, Optional, Dict
 from torchvision.models.detection.image_list import ImageList
-from typing import Tuple
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
 

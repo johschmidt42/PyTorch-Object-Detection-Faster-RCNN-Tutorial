@@ -1,11 +1,13 @@
-import torch
 import pathlib
+from typing import List, Dict
+
+import torch
 from skimage.io import imread
 from torchvision.ops import box_convert
-from transformations import map_class_to_int
-from typing import List, Dict
-from transformations import ComposeDouble, ComposeSingle
-from utils import read_json
+
+from pytorch_faster_rcnn_tutorial.transformations import ComposeDouble, ComposeSingle
+from pytorch_faster_rcnn_tutorial.transformations import map_class_to_int
+from pytorch_faster_rcnn_tutorial.utils import read_json
 
 
 class ObjectDetectionDataSet(torch.utils.data.Dataset):

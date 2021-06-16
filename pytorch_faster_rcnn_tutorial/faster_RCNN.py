@@ -1,6 +1,6 @@
+from collections import OrderedDict
 from itertools import chain
 from typing import Tuple, List
-from backbone_resnet import get_resnet_backbone, get_resnet_fpn_backbone
 
 import pytorch_lightning as pl
 import torch
@@ -8,7 +8,10 @@ from torchvision.models.detection.faster_rcnn import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.ops import MultiScaleRoIAlign
 
-from utils import from_dict_to_BoundingBox
+from pytorch_faster_rcnn_tutorial.metrics.enumerators import MethodAveragePrecision
+from pytorch_faster_rcnn_tutorial.metrics.pascal_voc_evaluator import get_pascalvoc_metrics
+from pytorch_faster_rcnn_tutorial.backbone_resnet import get_resnet_backbone, get_resnet_fpn_backbone
+from pytorch_faster_rcnn_tutorial.utils import from_dict_to_boundingbox
 
 
 def get_anchor_generator(anchor_size: Tuple[tuple] = None, aspect_ratios: Tuple[tuple] = None):
@@ -95,7 +98,6 @@ def get_fasterRCNN_resnet(num_classes: int,
         features = backbone(random_input)
 
     if isinstance(features, torch.Tensor):
-        from collections import OrderedDict
 
         features = OrderedDict([('0', features)])
 
@@ -163,10 +165,10 @@ class FasterRCNN_lightning(pl.LightningModule):
         # Inference
         preds = self.model(x)
 
-        gt_boxes = [from_dict_to_BoundingBox(target, name=name, groundtruth=True) for target, name in zip(y, x_name)]
+        gt_boxes = [from_dict_to_boundingbox(target, name=name, groundtruth=True) for target, name in zip(y, x_name)]
         gt_boxes = list(chain(*gt_boxes))
 
-        pred_boxes = [from_dict_to_BoundingBox(pred, name=name, groundtruth=False) for pred, name in zip(preds, x_name)]
+        pred_boxes = [from_dict_to_boundingbox(pred, name=name, groundtruth=False) for pred, name in zip(preds, x_name)]
         pred_boxes = list(chain(*pred_boxes))
 
         return {'pred_boxes': pred_boxes, 'gt_boxes': gt_boxes}
@@ -177,8 +179,6 @@ class FasterRCNN_lightning(pl.LightningModule):
         pred_boxes = [out['pred_boxes'] for out in outs]
         pred_boxes = list(chain(*pred_boxes))
 
-        from metrics.pascal_voc_evaluator import get_pascalvoc_metrics
-        from metrics.enumerators import MethodAveragePrecision
         metric = get_pascalvoc_metrics(gt_boxes=gt_boxes,
                                        det_boxes=pred_boxes,
                                        iou_threshold=self.iou_threshold,
@@ -198,10 +198,10 @@ class FasterRCNN_lightning(pl.LightningModule):
         # Inference
         preds = self.model(x)
 
-        gt_boxes = [from_dict_to_BoundingBox(target, name=name, groundtruth=True) for target, name in zip(y, x_name)]
+        gt_boxes = [from_dict_to_boundingbox(target, name=name, groundtruth=True) for target, name in zip(y, x_name)]
         gt_boxes = list(chain(*gt_boxes))
 
-        pred_boxes = [from_dict_to_BoundingBox(pred, name=name, groundtruth=False) for pred, name in zip(preds, x_name)]
+        pred_boxes = [from_dict_to_boundingbox(pred, name=name, groundtruth=False) for pred, name in zip(preds, x_name)]
         pred_boxes = list(chain(*pred_boxes))
 
         return {'pred_boxes': pred_boxes, 'gt_boxes': gt_boxes}
@@ -212,8 +212,6 @@ class FasterRCNN_lightning(pl.LightningModule):
         pred_boxes = [out['pred_boxes'] for out in outs]
         pred_boxes = list(chain(*pred_boxes))
 
-        from metrics.pascal_voc_evaluator import get_pascalvoc_metrics
-        from metrics.enumerators import MethodAveragePrecision
         metric = get_pascalvoc_metrics(gt_boxes=gt_boxes,
                                        det_boxes=pred_boxes,
                                        iou_threshold=self.iou_threshold,
