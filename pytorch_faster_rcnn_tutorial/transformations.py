@@ -1,3 +1,4 @@
+from functools import partial
 from typing import List, Callable
 
 import albumentations as A
@@ -112,7 +113,6 @@ class FunctionWrapperSingle(Repr):
     """A function wrapper that returns a partial for input only."""
 
     def __init__(self, function: Callable, *args, **kwargs):
-        from functools import partial
         self.function = partial(function, *args, **kwargs)
 
     def __call__(self, inp: np.ndarray): return self.function(inp)
@@ -122,7 +122,6 @@ class FunctionWrapperDouble(Repr):
     """A function wrapper that returns a partial for an input-target pair."""
 
     def __init__(self, function: Callable, input: bool = True, target: bool = False, *args, **kwargs):
-        from functools import partial
         self.function = partial(function, *args, **kwargs)
         self.input = input
         self.target = target

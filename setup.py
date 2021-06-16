@@ -17,5 +17,15 @@ setuptools.setup(
     install_requires=[
         'napari[all]',
         'albumentations',
+        'pytorch-lightning',
+        'numpy',
+        'pytorch',
+        'torchvision',
+        'scitkit-image',
+        'sklearn',
+        'importlib_metadata',
+        'neptune-contrib',
+        'IPython',
+        'magicgui'
     ]
 )

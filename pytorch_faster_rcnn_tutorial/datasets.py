@@ -1,7 +1,9 @@
 import pathlib
+from multiprocessing import Pool
 from typing import List, Dict
 
 import torch
+from skimage.color import rgba2rgb
 from skimage.io import imread
 from torchvision.ops import box_convert
 
@@ -38,7 +40,6 @@ class ObjectDetectionDataSet(torch.utils.data.Dataset):
 
         if self.use_cache:
             # Use multiprocessing to load images and targets into RAM
-            from multiprocessing import Pool
             with Pool() as pool:
                 self.cached_data = pool.starmap(self.read_images, zip(inputs, targets))
 
@@ -59,7 +60,6 @@ class ObjectDetectionDataSet(torch.utils.data.Dataset):
 
         # From RGBA to RGB
         if x.shape[-1] == 4:
-            from skimage.color import rgba2rgb
             x = rgba2rgb(x)
 
         # Read boxes
@@ -136,7 +136,6 @@ class ObjectDetectionDatasetSingle(torch.utils.data.Dataset):
 
         if self.use_cache:
             # Use multiprocessing to load images and targets into RAM
-            from multiprocessing import Pool
             with Pool() as pool:
                 self.cached_data = pool.starmap(self.read_images, inputs)
 
@@ -156,7 +155,6 @@ class ObjectDetectionDatasetSingle(torch.utils.data.Dataset):
 
         # From RGBA to RGB
         if x.shape[-1] == 4:
-            from skimage.color import rgba2rgb
             x = rgba2rgb(x)
 
         # Preprocessing
