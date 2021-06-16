@@ -4,7 +4,7 @@ This repository contains all files that were used for the blog tutorial
 If you want to use neptune for your own experiments, add the 'NEPTUNE' env var to your system.
 A complete jupyter notebook can be found [here](training_script.ipynb).
 
-The [visual.py](visual.py) script contains the code to visualize a dataset, a list of images, anchor boxes or to create annotations for a dataset.
+The [visual.py](pytorch_faster_rcnn_tutorial/visual.py) script contains the code to visualize a dataset, a list of images, anchor boxes or to create annotations for a dataset.
 The provided code for this script was written with napari [0.4.8](https://napari.org/docs/dev/release/release_0_4_8.html) and can be viewed as a hacky solution instead of quality code with good software engineering. 
 With napari being actively developed, you can expect changes that might break the code some time in the future.
 
