@@ -21,7 +21,7 @@ setuptools.setup(
         'numpy',
         'pytorch',
         'torchvision',
-        'scitkit-image',
+        'scikit-image',
         'sklearn',
         'importlib_metadata',
         'neptune-contrib',
