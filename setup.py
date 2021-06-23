@@ -15,15 +15,20 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'napari[all]',
-        'albumentations',
-        'pytorch-lightning',
         'numpy',
         'scikit-image',
         'sklearn',
         'importlib_metadata',
         'neptune-contrib',
-        'jupyterlab',
-        'magicgui'
+        'napari==0.49',
+        'jupyterlab==3.0.13',
+        'ipywidgets==7.6.3',
+        'albumentations==0.5.2',
+        'pytorch-lightning==1.3.5',
+        'magicgui==0.29',
+        'torch==1.8.1',
+        'torchvision==0.9.1',
+        'torchsummary==1.5.1',
+        'torchmetrics==0.2.0'
     ]
 )
