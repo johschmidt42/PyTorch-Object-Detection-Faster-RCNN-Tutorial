@@ -35,6 +35,7 @@ params = {'BATCH_SIZE': 2,
           'PROJECT': 'Heads',
           'EXPERIMENT': 'heads',
           'MAXEPOCHS': 500,
+          'PATIENCE': 50,
           'BACKBONE': 'resnet34',
           'FPN': False,
           'ANCHOR_SIZE': ((32, 64, 128, 256, 512),),
@@ -52,8 +53,7 @@ def main():
     api_key = os.environ['NEPTUNE']  # if this throws an error, you didn't set your env var
 
     # save directory
-    if not params['SAVE_DIR']:
-        save_dir = os.getcwd()
+    save_dir = os.getcwd() if not params['SAVE_DIR'] else params['SAVE_DIR']
 
     # root directory
     root = pathlib.Path('pytorch_faster_rcnn_tutorial/data/heads')
@@ -171,7 +171,7 @@ def main():
     # callbacks
     checkpoint_callback = ModelCheckpoint(monitor='Validation_mAP', mode='max')
     learningrate_callback = LearningRateMonitor(logging_interval='step', log_momentum=False)
-    early_stopping_callback = EarlyStopping(monitor='Validation_mAP', patience=50, mode='max')
+    early_stopping_callback = EarlyStopping(monitor='Validation_mAP', patience=params['PATIENCE'], mode='max')
 
     # trainer init
     trainer = Trainer(gpus=params['GPU'],
@@ -205,6 +205,10 @@ def main():
                           save_directory=pathlib.Path.home(),
                           name='best_model.pt',
                           neptune_logger=neptune_logger)
+
+    # stop logger
+    neptune_logger.experiment.stop()
+    print('Finished')
 
 
 if __name__ == '__main__':
