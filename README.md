@@ -14,16 +14,11 @@ With napari being actively developed, you can expect changes that might break th
 - I changed the target structure from a pickled file with suffix `.pt` to a `.json` file.
 - I removed the api_key_neptune.py file, because storing credentials like this is considered bad practice!
   Now you have to get your API key from your systems env var `NEPTUNE`.
+- Now compatible with pytorch 1.9 and pytorch lighting 1.37
+- Adding SSD soon
+- Changes in the blog post will follow. Stay tuned.
 
-Changes in the blog post will follow. Stay tuned.
-
-
-If you cannot start jupyter-lab or jupyter-notebook on Windows because of 
-`ImportError: DLL load failed while importing win32api`,
-try to run `conda install pywin32` if using the conda package manager.
-
-
-Installation steps:
+## Installation steps:
 
 - `conda create -n <env_name>`
 - `conda activate <env_name>`
@@ -35,3 +30,8 @@ Installation steps:
   Otherwise the versions for torch etc. specified in [setup.py](setup.py) are installed.
   To install the correct pytorch version for your hardware, check [pytorch.org](https://pytorch.org/).
 - [OPTIONAL] To check whether pytorch uses the nvidia gpu, check if `torch.cuda.is_available()` returns `True` in a python shell.
+
+## Other notes
+If you cannot start jupyter-lab or jupyter-notebook on Windows because of 
+`ImportError: DLL load failed while importing win32api`,
+try to run `conda install pywin32` if using the conda package manager.
