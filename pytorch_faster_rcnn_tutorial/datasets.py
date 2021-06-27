@@ -108,7 +108,7 @@ class ObjectDetectionDataSet(torch.utils.data.Dataset):
 
         # Typecasting
         x = torch.from_numpy(x).type(torch.float32)
-        target = {key: torch.from_numpy(value) for key, value in target.items()}
+        target = {key: torch.from_numpy(value).type(torch.int64) for key, value in target.items()}
 
         return {'x': x, 'y': target, 'x_name': self.inputs[index].name, 'y_name': self.targets[index].name}
 
