@@ -20,17 +20,13 @@ def normalize(inp: np.ndarray, mean: float, std: float):
     return inp_out
 
 
-def re_normalize(inp: np.ndarray,
-                 low: int = 0,
-                 high: int = 255
-                 ):
+def re_normalize(inp: np.ndarray, low: int = 0, high: int = 255):
     """Normalize the data to a certain range. Default: [0-255]"""
     inp_out = bytescale(inp, low=low, high=high)
     return inp_out
 
 
-def clip_bbs(inp: np.ndarray,
-             bbs: np.ndarray):
+def clip_bbs(inp: np.ndarray, bbs: np.ndarray):
     """
     If the bounding boxes exceed one dimension, they are clipped to the dim's maximum.
     Bounding boxes are expected to be in xyxy format.
@@ -74,31 +70,31 @@ def map_class_to_int(labels: List[str], mapping: dict):
 
 def apply_nms(target: dict, iou_threshold):
     """Non-maximum Suppression"""
-    boxes = torch.tensor(target['boxes'])
-    labels = torch.tensor(target['labels'])
-    scores = torch.tensor(target['scores'])
+    boxes = torch.tensor(target["boxes"])
+    labels = torch.tensor(target["labels"])
+    scores = torch.tensor(target["scores"])
 
     if boxes.size()[0] > 0:
         mask = nms(boxes, scores, iou_threshold=iou_threshold)
         mask = (np.array(mask),)
 
-        target['boxes'] = np.asarray(boxes)[mask]
-        target['labels'] = np.asarray(labels)[mask]
-        target['scores'] = np.asarray(scores)[mask]
+        target["boxes"] = np.asarray(boxes)[mask]
+        target["labels"] = np.asarray(labels)[mask]
+        target["scores"] = np.asarray(scores)[mask]
 
     return target
 
 
 def apply_score_threshold(target: dict, score_threshold):
     """Removes bounding box predictions with low scores."""
-    boxes = target['boxes']
-    labels = target['labels']
-    scores = target['scores']
+    boxes = target["boxes"]
+    labels = target["labels"]
+    scores = target["scores"]
 
     mask = np.where(scores > score_threshold)
-    target['boxes'] = boxes[mask]
-    target['labels'] = labels[mask]
-    target['scores'] = scores[mask]
+    target["boxes"] = boxes[mask]
+    target["labels"] = labels[mask]
+    target["scores"] = scores[mask]
 
     return target
 
@@ -106,7 +102,8 @@ def apply_score_threshold(target: dict, score_threshold):
 class Repr:
     """Evaluatable string representation of an object"""
 
-    def __repr__(self): return f'{self.__class__.__name__}: {self.__dict__}'
+    def __repr__(self):
+        return f"{self.__class__.__name__}: {self.__dict__}"
 
 
 class FunctionWrapperSingle(Repr):
@@ -115,20 +112,30 @@ class FunctionWrapperSingle(Repr):
     def __init__(self, function: Callable, *args, **kwargs):
         self.function = partial(function, *args, **kwargs)
 
-    def __call__(self, inp: np.ndarray): return self.function(inp)
+    def __call__(self, inp: np.ndarray):
+        return self.function(inp)
 
 
 class FunctionWrapperDouble(Repr):
     """A function wrapper that returns a partial for an input-target pair."""
 
-    def __init__(self, function: Callable, input: bool = True, target: bool = False, *args, **kwargs):
+    def __init__(
+        self,
+        function: Callable,
+        input: bool = True,
+        target: bool = False,
+        *args,
+        **kwargs,
+    ):
         self.function = partial(function, *args, **kwargs)
         self.input = input
         self.target = target
 
     def __call__(self, inp: np.ndarray, tar: dict):
-        if self.input: inp = self.function(inp)
-        if self.target: tar = self.function(tar)
+        if self.input:
+            inp = self.function(inp)
+        if self.target:
+            tar = self.function(tar)
         return inp, tar
 
 
@@ -138,7 +145,8 @@ class Compose:
     def __init__(self, transforms: List[Callable]):
         self.transforms = transforms
 
-    def __repr__(self): return str([transform for transform in self.transforms])
+    def __repr__(self):
+        return str([transform for transform in self.transforms])
 
 
 class ComposeDouble(Compose):
@@ -167,24 +175,25 @@ class AlbumentationWrapper(Repr):
     Use Clip() if your bounding boxes are outside of the image, before using this wrapper.
     """
 
-    def __init__(self, albumentation: Callable, format: str = 'pascal_voc'):
+    def __init__(self, albumentation: Callable, format: str = "pascal_voc"):
         self.albumentation = albumentation
         self.format = format
 
     def __call__(self, inp: np.ndarray, tar: dict):
         # input, target
-        transform = A.Compose([
-            self.albumentation
-        ], bbox_params=A.BboxParams(format=self.format, label_fields=['class_labels']))
+        transform = A.Compose(
+            [self.albumentation],
+            bbox_params=A.BboxParams(format=self.format, label_fields=["class_labels"]),
+        )
 
-        out_dict = transform(image=inp, bboxes=tar['boxes'], class_labels=tar['labels'])
+        out_dict = transform(image=inp, bboxes=tar["boxes"], class_labels=tar["labels"])
 
-        input_out = np.array(out_dict['image'])
-        boxes = np.array(out_dict['bboxes'])
-        labels = np.array(out_dict['class_labels'])
+        input_out = np.array(out_dict["image"])
+        boxes = np.array(out_dict["bboxes"])
+        labels = np.array(out_dict["class_labels"])
 
-        tar['boxes'] = boxes
-        tar['labels'] = labels
+        tar["boxes"] = boxes
+        tar["labels"] = labels
 
         return input_out, tar
 
@@ -197,7 +206,7 @@ class Clip(Repr):
     """
 
     def __call__(self, inp: np.ndarray, tar: dict):
-        new_boxes = clip_bbs(inp=inp, bbs=tar['boxes'])
-        tar['boxes'] = new_boxes
+        new_boxes = clip_bbs(inp=inp, bbs=tar["boxes"])
+        tar["boxes"] = new_boxes
 
         return inp, tar

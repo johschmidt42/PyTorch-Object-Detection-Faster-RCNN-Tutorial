@@ -12,19 +12,19 @@ def get_resnet_backbone(backbone_name: str):
     Returns a resnet backbone pretrained on ImageNet.
     Removes the average-pooling layer and the linear layer at the end.
     """
-    if backbone_name == 'resnet18':
+    if backbone_name == "resnet18":
         pretrained_model = models.resnet18(pretrained=True, progress=False)
         out_channels = 512
-    elif backbone_name == 'resnet34':
+    elif backbone_name == "resnet34":
         pretrained_model = models.resnet34(pretrained=True, progress=False)
         out_channels = 512
-    elif backbone_name == 'resnet50':
+    elif backbone_name == "resnet50":
         pretrained_model = models.resnet50(pretrained=True, progress=False)
         out_channels = 2048
-    elif backbone_name == 'resnet101':
+    elif backbone_name == "resnet101":
         pretrained_model = models.resnet101(pretrained=True, progress=False)
         out_channels = 2048
-    elif backbone_name == 'resnet152':
+    elif backbone_name == "resnet152":
         pretrained_model = models.resnet152(pretrained=True, progress=False)
         out_channels = 2048
 
@@ -34,25 +34,30 @@ def get_resnet_backbone(backbone_name: str):
     return backbone
 
 
-def get_resnet_fpn_backbone(backbone_name: str, pretrained: bool = True, trainable_layers: int = 5):
+def get_resnet_fpn_backbone(
+    backbone_name: str, pretrained: bool = True, trainable_layers: int = 5
+):
     """
     Returns a resnet backbone with fpn pretrained on ImageNet.
     """
-    backbone = resnet_fpn_backbone(backbone_name=backbone_name,
-                                   pretrained=pretrained,
-                                   trainable_layers=trainable_layers)
+    backbone = resnet_fpn_backbone(
+        backbone_name=backbone_name,
+        pretrained=pretrained,
+        trainable_layers=trainable_layers,
+    )
 
     backbone.out_channels = 256
     return backbone
 
 
-def resnet_fpn_backbone(backbone_name: str,
-                        pretrained: bool,
-                        norm_layer=misc_nn_ops.FrozenBatchNorm2d,
-                        trainable_layers: int = 3,
-                        returned_layers=None,
-                        extra_blocks=None
-                        ):
+def resnet_fpn_backbone(
+    backbone_name: str,
+    pretrained: bool,
+    norm_layer=misc_nn_ops.FrozenBatchNorm2d,
+    trainable_layers: int = 3,
+    returned_layers=None,
+    extra_blocks=None,
+):
     # Slight adaptation from the original pytorch vision package
     # Changes: Removed extra_blocks parameter - This parameter invokes LastLevelMaxPool(), which I don't need
     """
@@ -68,12 +73,14 @@ def resnet_fpn_backbone(backbone_name: str,
             Valid values are between 0 and 5, with 5 meaning all backbone layers are trainable.
     """
     backbone = resnet.__dict__[backbone_name](
-        pretrained=pretrained,
-        norm_layer=norm_layer)
+        pretrained=pretrained, norm_layer=norm_layer
+    )
 
     # select layers that wont be frozen
     assert trainable_layers <= 5 and trainable_layers >= 0
-    layers_to_train = ['layer4', 'layer3', 'layer2', 'layer1', 'conv1'][:trainable_layers]
+    layers_to_train = ["layer4", "layer3", "layer2", "layer1", "conv1"][
+        :trainable_layers
+    ]
     # freeze layers only if pretrained backbone is used
     for name, parameter in backbone.named_parameters():
         if all([not name.startswith(layer) for layer in layers_to_train]):
@@ -82,12 +89,18 @@ def resnet_fpn_backbone(backbone_name: str,
     if returned_layers is None:
         returned_layers = [1, 2, 3, 4]
     assert min(returned_layers) > 0 and max(returned_layers) < 5
-    return_layers = {f'layer{k}': str(v) for v, k in enumerate(returned_layers)}
+    return_layers = {f"layer{k}": str(v) for v, k in enumerate(returned_layers)}
 
     in_channels_stage2 = backbone.inplanes // 8
     in_channels_list = [in_channels_stage2 * 2 ** (i - 1) for i in returned_layers]
     out_channels = 256
-    return BackboneWithFPN(backbone, return_layers, in_channels_list, out_channels, extra_blocks=extra_blocks)
+    return BackboneWithFPN(
+        backbone,
+        return_layers,
+        in_channels_list,
+        out_channels,
+        extra_blocks=extra_blocks,
+    )
 
 
 class BackboneWithFPN(nn.Module):
@@ -109,7 +122,9 @@ class BackboneWithFPN(nn.Module):
         out_channels (int): the number of channels in the FPN
     """
 
-    def __init__(self, backbone, return_layers, in_channels_list, out_channels, extra_blocks=None):
+    def __init__(
+        self, backbone, return_layers, in_channels_list, out_channels, extra_blocks=None
+    ):
         super(BackboneWithFPN, self).__init__()
 
         self.body = IntermediateLayerGetter(backbone, return_layers=return_layers)

@@ -9,57 +9,69 @@ from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.ops import MultiScaleRoIAlign
 
 from pytorch_faster_rcnn_tutorial.metrics.enumerators import MethodAveragePrecision
-from pytorch_faster_rcnn_tutorial.metrics.pascal_voc_evaluator import get_pascalvoc_metrics
-from pytorch_faster_rcnn_tutorial.backbone_resnet import get_resnet_backbone, get_resnet_fpn_backbone
+from pytorch_faster_rcnn_tutorial.metrics.pascal_voc_evaluator import (
+    get_pascalvoc_metrics,
+)
+from pytorch_faster_rcnn_tutorial.backbone_resnet import (
+    get_resnet_backbone,
+    get_resnet_fpn_backbone,
+)
 from pytorch_faster_rcnn_tutorial.utils import from_dict_to_boundingbox
 
 
-def get_anchor_generator(anchor_size: Tuple[tuple] = None, aspect_ratios: Tuple[tuple] = None):
+def get_anchor_generator(
+    anchor_size: Tuple[tuple] = None, aspect_ratios: Tuple[tuple] = None
+):
     """Returns the anchor generator."""
     if anchor_size is None:
         anchor_size = ((16,), (32,), (64,), (128,))
     if aspect_ratios is None:
         aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_size)
 
-    anchor_generator = AnchorGenerator(sizes=anchor_size,
-                                       aspect_ratios=aspect_ratios)
+    anchor_generator = AnchorGenerator(sizes=anchor_size, aspect_ratios=aspect_ratios)
     return anchor_generator
 
 
-def get_roi_pool(featmap_names: List[str] = None, output_size: int = 7, sampling_ratio: int = 2):
+def get_roi_pool(
+    featmap_names: List[str] = None, output_size: int = 7, sampling_ratio: int = 2
+):
     """Returns the ROI Pooling"""
     if featmap_names is None:
         # default for resnet with FPN
-        featmap_names = ['0', '1', '2', '3']
+        featmap_names = ["0", "1", "2", "3"]
 
-    roi_pooler = MultiScaleRoIAlign(featmap_names=featmap_names,
-                                    output_size=output_size,
-                                    sampling_ratio=sampling_ratio)
+    roi_pooler = MultiScaleRoIAlign(
+        featmap_names=featmap_names,
+        output_size=output_size,
+        sampling_ratio=sampling_ratio,
+    )
 
     return roi_pooler
 
 
-def get_fasterRCNN(backbone: torch.nn.Module,
-                   anchor_generator: AnchorGenerator,
-                   roi_pooler: MultiScaleRoIAlign,
-                   num_classes: int,
-                   image_mean: List[float] = [0.485, 0.456, 0.406],
-                   image_std: List[float] = [0.229, 0.224, 0.225],
-                   min_size: int = 512,
-                   max_size: int = 1024,
-                   **kwargs
-                   ):
+def get_fasterRCNN(
+    backbone: torch.nn.Module,
+    anchor_generator: AnchorGenerator,
+    roi_pooler: MultiScaleRoIAlign,
+    num_classes: int,
+    image_mean: List[float] = [0.485, 0.456, 0.406],
+    image_std: List[float] = [0.229, 0.224, 0.225],
+    min_size: int = 512,
+    max_size: int = 1024,
+    **kwargs,
+):
     """Returns the Faster-RCNN model. Default normalization: ImageNet"""
-    model = FasterRCNN(backbone=backbone,
-                       rpn_anchor_generator=anchor_generator,
-                       box_roi_pool=roi_pooler,
-                       num_classes=num_classes,
-                       image_mean=image_mean,  # ImageNet
-                       image_std=image_std,  # ImageNet
-                       min_size=min_size,
-                       max_size=max_size,
-                       **kwargs
-                       )
+    model = FasterRCNN(
+        backbone=backbone,
+        rpn_anchor_generator=anchor_generator,
+        box_roi_pool=roi_pooler,
+        num_classes=num_classes,
+        image_mean=image_mean,  # ImageNet
+        image_std=image_std,  # ImageNet
+        min_size=min_size,
+        max_size=max_size,
+        **kwargs,
+    )
     model.num_classes = num_classes
     model.image_mean = image_mean
     model.image_std = image_std
@@ -69,15 +81,16 @@ def get_fasterRCNN(backbone: torch.nn.Module,
     return model
 
 
-def get_fasterRCNN_resnet(num_classes: int,
-                          backbone_name: str,
-                          anchor_size: List[float],
-                          aspect_ratios: List[float],
-                          fpn: bool = True,
-                          min_size: int = 512,
-                          max_size: int = 1024,
-                          **kwargs
-                          ):
+def get_fasterRCNN_resnet(
+    num_classes: int,
+    backbone_name: str,
+    anchor_size: List[float],
+    aspect_ratios: List[float],
+    fpn: bool = True,
+    min_size: int = 512,
+    max_size: int = 1024,
+    **kwargs,
+):
     """Returns the Faster-RCNN model with resnet backbone with and without fpn."""
 
     # Backbone
@@ -89,7 +102,9 @@ def get_fasterRCNN_resnet(num_classes: int,
     # Anchors
     anchor_size = anchor_size
     aspect_ratios = aspect_ratios * len(anchor_size)
-    anchor_generator = get_anchor_generator(anchor_size=anchor_size, aspect_ratios=aspect_ratios)
+    anchor_generator = get_anchor_generator(
+        anchor_size=anchor_size, aspect_ratios=aspect_ratios
+    )
 
     # ROI Pool
     with torch.no_grad():
@@ -99,28 +114,28 @@ def get_fasterRCNN_resnet(num_classes: int,
 
     if isinstance(features, torch.Tensor):
 
-        features = OrderedDict([('0', features)])
+        features = OrderedDict([("0", features)])
 
     featmap_names = [key for key in features.keys() if key.isnumeric()]
 
     roi_pool = get_roi_pool(featmap_names=featmap_names)
 
     # Model
-    return get_fasterRCNN(backbone=backbone,
-                          anchor_generator=anchor_generator,
-                          roi_pooler=roi_pool,
-                          num_classes=num_classes,
-                          min_size=min_size,
-                          max_size=max_size,
-                          **kwargs)
+    return get_fasterRCNN(
+        backbone=backbone,
+        anchor_generator=anchor_generator,
+        roi_pooler=roi_pool,
+        num_classes=num_classes,
+        min_size=min_size,
+        max_size=max_size,
+        **kwargs,
+    )
 
 
 class FasterRCNN_lightning(pl.LightningModule):
-    def __init__(self,
-                 model: torch.nn.Module,
-                 lr: float = 0.0001,
-                 iou_threshold: float = 0.5
-                 ):
+    def __init__(
+        self, model: torch.nn.Module, lr: float = 0.0001, iou_threshold: float = 0.5
+    ):
         super().__init__()
 
         # Model
@@ -165,31 +180,39 @@ class FasterRCNN_lightning(pl.LightningModule):
         # Inference
         preds = self.model(x)
 
-        gt_boxes = [from_dict_to_boundingbox(target, name=name, groundtruth=True) for target, name in zip(y, x_name)]
+        gt_boxes = [
+            from_dict_to_boundingbox(target, name=name, groundtruth=True)
+            for target, name in zip(y, x_name)
+        ]
         gt_boxes = list(chain(*gt_boxes))
 
-        pred_boxes = [from_dict_to_boundingbox(pred, name=name, groundtruth=False) for pred, name in zip(preds, x_name)]
+        pred_boxes = [
+            from_dict_to_boundingbox(pred, name=name, groundtruth=False)
+            for pred, name in zip(preds, x_name)
+        ]
         pred_boxes = list(chain(*pred_boxes))
 
-        return {'pred_boxes': pred_boxes, 'gt_boxes': gt_boxes}
+        return {"pred_boxes": pred_boxes, "gt_boxes": gt_boxes}
 
     def validation_epoch_end(self, outs):
-        gt_boxes = [out['gt_boxes'] for out in outs]
+        gt_boxes = [out["gt_boxes"] for out in outs]
         gt_boxes = list(chain(*gt_boxes))
-        pred_boxes = [out['pred_boxes'] for out in outs]
+        pred_boxes = [out["pred_boxes"] for out in outs]
         pred_boxes = list(chain(*pred_boxes))
 
-        metric = get_pascalvoc_metrics(gt_boxes=gt_boxes,
-                                       det_boxes=pred_boxes,
-                                       iou_threshold=self.iou_threshold,
-                                       method=MethodAveragePrecision.EVERY_POINT_INTERPOLATION,
-                                       generate_table=True)
+        metric = get_pascalvoc_metrics(
+            gt_boxes=gt_boxes,
+            det_boxes=pred_boxes,
+            iou_threshold=self.iou_threshold,
+            method=MethodAveragePrecision.EVERY_POINT_INTERPOLATION,
+            generate_table=True,
+        )
 
-        per_class, mAP = metric['per_class'], metric['mAP']
-        self.log('Validation_mAP', mAP)
+        per_class, mAP = metric["per_class"], metric["mAP"]
+        self.log("Validation_mAP", mAP)
 
         for key, value in per_class.items():
-            self.log(f'Validation_AP_{key}', value['AP'])
+            self.log(f"Validation_AP_{key}", value["AP"])
 
     def test_step(self, batch, batch_idx):
         # Batch
@@ -198,40 +221,49 @@ class FasterRCNN_lightning(pl.LightningModule):
         # Inference
         preds = self.model(x)
 
-        gt_boxes = [from_dict_to_boundingbox(target, name=name, groundtruth=True) for target, name in zip(y, x_name)]
+        gt_boxes = [
+            from_dict_to_boundingbox(target, name=name, groundtruth=True)
+            for target, name in zip(y, x_name)
+        ]
         gt_boxes = list(chain(*gt_boxes))
 
-        pred_boxes = [from_dict_to_boundingbox(pred, name=name, groundtruth=False) for pred, name in zip(preds, x_name)]
+        pred_boxes = [
+            from_dict_to_boundingbox(pred, name=name, groundtruth=False)
+            for pred, name in zip(preds, x_name)
+        ]
         pred_boxes = list(chain(*pred_boxes))
 
-        return {'pred_boxes': pred_boxes, 'gt_boxes': gt_boxes}
+        return {"pred_boxes": pred_boxes, "gt_boxes": gt_boxes}
 
     def test_epoch_end(self, outs):
-        gt_boxes = [out['gt_boxes'] for out in outs]
+        gt_boxes = [out["gt_boxes"] for out in outs]
         gt_boxes = list(chain(*gt_boxes))
-        pred_boxes = [out['pred_boxes'] for out in outs]
+        pred_boxes = [out["pred_boxes"] for out in outs]
         pred_boxes = list(chain(*pred_boxes))
 
-        metric = get_pascalvoc_metrics(gt_boxes=gt_boxes,
-                                       det_boxes=pred_boxes,
-                                       iou_threshold=self.iou_threshold,
-                                       method=MethodAveragePrecision.EVERY_POINT_INTERPOLATION,
-                                       generate_table=True)
+        metric = get_pascalvoc_metrics(
+            gt_boxes=gt_boxes,
+            det_boxes=pred_boxes,
+            iou_threshold=self.iou_threshold,
+            method=MethodAveragePrecision.EVERY_POINT_INTERPOLATION,
+            generate_table=True,
+        )
 
-        per_class, mAP = metric['per_class'], metric['mAP']
-        self.log('Test_mAP', mAP)
+        per_class, mAP = metric["per_class"], metric["mAP"]
+        self.log("Test_mAP", mAP)
 
         for key, value in per_class.items():
-            self.log(f'Test_AP_{key}', value['AP'])
+            self.log(f"Test_AP_{key}", value["AP"])
 
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.model.parameters(),
-                                    lr=self.lr,
-                                    momentum=0.9,
-                                    weight_decay=0.005)
-        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
-                                                                  mode='max',
-                                                                  factor=0.75,
-                                                                  patience=30,
-                                                                  min_lr=0)
-        return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler, 'monitor': 'Validation_mAP'}
+        optimizer = torch.optim.SGD(
+            self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=0.005
+        )
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="max", factor=0.75, patience=30, min_lr=0
+        )
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": lr_scheduler,
+            "monitor": "Validation_mAP",
+        }

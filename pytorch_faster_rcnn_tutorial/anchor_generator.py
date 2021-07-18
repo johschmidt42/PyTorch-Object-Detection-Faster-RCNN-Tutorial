@@ -33,13 +33,13 @@ class AnchorGenerator(nn.Module):
 
     __annotations__ = {
         "cell_anchors": Optional[List[torch.Tensor]],
-        "_cache": Dict[str, List[torch.Tensor]]
+        "_cache": Dict[str, List[torch.Tensor]],
     }
 
     def __init__(
-            self,
-            sizes=((128, 256, 512),),
-            aspect_ratios=((0.5, 1.0, 2.0),),
+        self,
+        sizes=((128, 256, 512),),
+        aspect_ratios=((0.5, 1.0, 2.0),),
     ):
         super(AnchorGenerator, self).__init__()
 
@@ -55,7 +55,9 @@ class AnchorGenerator(nn.Module):
         self.cell_anchors = None
         self._cache = {}
 
-    def generate_anchors(self, scales, aspect_ratios, dtype=torch.float32, device="cpu"):
+    def generate_anchors(
+        self, scales, aspect_ratios, dtype=torch.float32, device="cpu"
+    ):
         # type: (List[int], List[float], int, Device) -> Tensor  # noqa: F821
         scales = torch.as_tensor(scales, dtype=dtype, device=device)
         aspect_ratios = torch.as_tensor(aspect_ratios, dtype=dtype, device=device)
@@ -79,12 +81,7 @@ class AnchorGenerator(nn.Module):
                 return
 
         cell_anchors = [
-            self.generate_anchors(
-                sizes,
-                aspect_ratios,
-                dtype,
-                device
-            )
+            self.generate_anchors(sizes, aspect_ratios, dtype, device)
             for sizes, aspect_ratios in zip(self.sizes, self.aspect_ratios)
         ]
         self.cell_anchors = cell_anchors
@@ -101,20 +98,20 @@ class AnchorGenerator(nn.Module):
         assert cell_anchors is not None
         assert len(grid_sizes) == len(strides) == len(cell_anchors)
 
-        for size, stride, base_anchors in zip(
-                grid_sizes, strides, cell_anchors
-        ):
+        for size, stride, base_anchors in zip(grid_sizes, strides, cell_anchors):
             grid_height, grid_width = size
             stride_height, stride_width = stride
             device = base_anchors.device
 
             # For output anchor, compute [x_center, y_center, x_center, y_center]
-            shifts_x = torch.arange(
-                0, grid_width, dtype=torch.float32, device=device
-            ) * stride_width
-            shifts_y = torch.arange(
-                0, grid_height, dtype=torch.float32, device=device
-            ) * stride_height
+            shifts_x = (
+                torch.arange(0, grid_width, dtype=torch.float32, device=device)
+                * stride_width
+            )
+            shifts_y = (
+                torch.arange(0, grid_height, dtype=torch.float32, device=device)
+                * stride_height
+            )
             shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)
             shift_x = shift_x.reshape(-1)
             shift_y = shift_y.reshape(-1)
@@ -142,20 +139,26 @@ class AnchorGenerator(nn.Module):
         grid_sizes = list([feature_map.shape[-2:] for feature_map in feature_maps])
         image_size = image_list.tensors.shape[-2:]
         dtype, device = feature_maps[0].dtype, feature_maps[0].device
-        strides = [[torch.tensor(image_size[0] // g[0], dtype=torch.int64, device=device),
-                    torch.tensor(image_size[1] // g[1], dtype=torch.int64, device=device)] for g in grid_sizes]
+        strides = [
+            [
+                torch.tensor(image_size[0] // g[0], dtype=torch.int64, device=device),
+                torch.tensor(image_size[1] // g[1], dtype=torch.int64, device=device),
+            ]
+            for g in grid_sizes
+        ]
         self.set_cell_anchors(dtype, device)
         anchors_over_all_feature_maps = self.cached_grid_anchors(grid_sizes, strides)
         self._cache.clear()
         return anchors_over_all_feature_maps
 
 
-def get_anchor_boxes(image: torch.tensor,
-                     rcnn_transform: GeneralizedRCNNTransform,
-                     feature_map_size: tuple,
-                     anchor_size: Tuple[tuple] = ((128, 256, 512),),
-                     aspect_ratios: Tuple[tuple] = ((1.0,),),
-                     ):
+def get_anchor_boxes(
+    image: torch.tensor,
+    rcnn_transform: GeneralizedRCNNTransform,
+    feature_map_size: tuple,
+    anchor_size: Tuple[tuple] = ((128, 256, 512),),
+    aspect_ratios: Tuple[tuple] = ((1.0,),),
+):
     """
     Returns the anchors for a given image and feature map.
     image should be a torch.tensor with shape [C, H, W].

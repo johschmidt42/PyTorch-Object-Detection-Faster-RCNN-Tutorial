@@ -33,8 +33,8 @@ def make_bbox_napari(bbox, reverse=False):
 
     """
     if reverse:
-        x = (bbox[:, 1])
-        y = (bbox[:, 0])
+        x = bbox[:, 1]
+        y = bbox[:, 0]
 
         x1 = x.min()
         y1 = y.min()
@@ -49,15 +49,13 @@ def make_bbox_napari(bbox, reverse=False):
         x2 = bbox[2]
         y2 = bbox[3]
 
-        bbox_rect = np.array(
-            [[y1, x1], [y2, x1], [y2, x2], [y1, x2]]
-        )
+        bbox_rect = np.array([[y1, x1], [y2, x1], [y2, x2], [y1, x2]])
         return bbox_rect
 
 
 def get_center_bounding_box(boxes: torch.tensor):
     """Returns the center points of given bounding boxes."""
-    return box_convert(boxes, in_fmt='xyxy', out_fmt='cxcywh')[:, :2]
+    return box_convert(boxes, in_fmt="xyxy", out_fmt="cxcywh")[:, :2]
 
 
 class ViewerBase:
@@ -81,13 +79,13 @@ class ViewerBase:
 
         # Key-bindings
         # Press 'n' to get the next sample
-        @self.viewer.bind_key('n')
+        @self.viewer.bind_key("n")
         def next(viewer):
             self.increase_index()  # Increase the index
             self.show_sample()  # Show next sample
 
         # Press 'b' to get the previous sample
-        @self.viewer.bind_key('b')
+        @self.viewer.bind_key("b")
         def prev(viewer):
             self.decrease_index()  # Decrease the index
             self.show_sample()  # Show next sample
@@ -127,10 +125,12 @@ class ViewerBase:
 
 
 class DatasetViewer(ViewerBase):
-    def __init__(self,
-                 dataset: ObjectDetectionDataSet,
-                 color_mapping: Dict,
-                 rccn_transform: GeneralizedRCNNTransform = None):
+    def __init__(
+        self,
+        dataset: ObjectDetectionDataSet,
+        color_mapping: Dict,
+        rccn_transform: GeneralizedRCNNTransform = None,
+    ):
         self.dataset = dataset
         self.index = 0
         self.color_mapping = color_mapping
@@ -181,7 +181,7 @@ class DatasetViewer(ViewerBase):
 
     def transform_x(self, sample):
         # dict unpacking
-        x, x_name = sample['x'], sample['x_name']
+        x, x_name = sample["x"], sample["x_name"]
 
         # make sure it's a numpy.ndarray on the cpu
         x = x.cpu().numpy()
@@ -197,7 +197,7 @@ class DatasetViewer(ViewerBase):
 
     def transform_y(self, sample):
         # dict unpacking
-        y, y_name = sample['y'], sample['y_name']
+        y, y_name = sample["y"], sample["y_name"]
 
         # make sure it's numpy.ndarrays on the cpu()
         y = {key: value.cpu().numpy() for key, value in y.items()}
@@ -205,7 +205,7 @@ class DatasetViewer(ViewerBase):
         return y, y_name
 
     def get_boxes(self, y):
-        boxes = y['boxes']
+        boxes = y["boxes"]
 
         # transform bboxes to make them napari compatible
         boxes_napari = [make_bbox_napari(box) for box in boxes]
@@ -213,21 +213,21 @@ class DatasetViewer(ViewerBase):
         return boxes_napari
 
     def get_labels(self, y):
-        return y['labels']
+        return y["labels"]
 
     def get_colors(self, y):
-        return color_mapping_func(y['labels'], self.color_mapping)
+        return color_mapping_func(y["labels"], self.color_mapping)
 
     def get_scores(self, y):
-        return y['scores']
+        return y["scores"]
 
     def get_text_parameters(self):
         return {
-            'text': '{labels}',
-            'size': 10,
-            'color': 'white',
-            'anchor': 'upper_left',
-            'translation': [-1, 0],
+            "text": "{labels}",
+            "size": 10,
+            "color": "white",
+            "anchor": "upper_left",
+            "translation": [-1, 0],
         }
 
     def create_shape_layer(self, y, y_name):
@@ -241,33 +241,35 @@ class DatasetViewer(ViewerBase):
         # in this case that's the label
 
         text_parameters = self.get_text_parameters()  # dict
-        properties = {'labels': labels}
+        properties = {"labels": labels}
 
-        if 'scores' in y.keys():
+        if "scores" in y.keys():
             scores = self.get_scores(y)
-            text_parameters['text'] = 'label: {labels}\nscore: {scores:.2f}'
-            properties['scores'] = scores
+            text_parameters["text"] = "label: {labels}\nscore: {scores:.2f}"
+            properties["scores"] = scores
 
         # add shape layer
-        shape_layer = self.viewer.add_shapes(data=boxes,
-                                             face_color='transparent',
-                                             edge_color='red',
-                                             edge_width=2,
-                                             properties=properties,
-                                             name=y_name,
-                                             text=text_parameters)
+        shape_layer = self.viewer.add_shapes(
+            data=boxes,
+            face_color="transparent",
+            edge_color="red",
+            edge_width=2,
+            properties=properties,
+            name=y_name,
+            text=text_parameters,
+        )
 
         # make non-editable
         shape_layer.editable = False
 
         # save some information in the metadata
-        self.save_to_metadata(shape_layer, 'boxes', boxes)
-        self.save_to_metadata(shape_layer, 'labels', labels)
-        self.save_to_metadata(shape_layer, 'colors', colors)
+        self.save_to_metadata(shape_layer, "boxes", boxes)
+        self.save_to_metadata(shape_layer, "labels", labels)
+        self.save_to_metadata(shape_layer, "colors", colors)
 
         # add scores
-        if 'scores' in y.keys():
-            self.save_to_metadata(shape_layer, 'scores', scores)
+        if "scores" in y.keys():
+            self.save_to_metadata(shape_layer, "scores", scores)
 
         # update color
         self.set_colors_of_shapes(shape_layer, self.color_mapping)
@@ -284,32 +286,32 @@ class DatasetViewer(ViewerBase):
         labels = self.get_labels(y)
         colors = self.get_colors(y)
 
-        if 'scores' in y.keys():
+        if "scores" in y.keys():
             scores = self.get_scores(y)
 
         # set the current properties
         # this is a workaround for a bug https://github.com/napari/napari/issues/2239
-        shape_layer.current_properties['labels'] = labels
-        if 'scores' in y.keys():
-            shape_layer.current_properties['scores'] = scores
+        shape_layer.current_properties["labels"] = labels
+        if "scores" in y.keys():
+            shape_layer.current_properties["scores"] = scores
 
         # add shapes to layer
         shape_layer.add(boxes)
 
         # set the properties correctly (also part of the workaround)
-        shape_layer.properties['labels'] = labels
-        if 'scores' in y.keys():
-            shape_layer.properties['scores'] = scores
+        shape_layer.properties["labels"] = labels
+        if "scores" in y.keys():
+            shape_layer.properties["scores"] = scores
 
         # override information in the metadata
         self.reset_metadata(shape_layer)
-        self.save_to_metadata(shape_layer, 'boxes', boxes)
-        self.save_to_metadata(shape_layer, 'labels', labels)
-        self.save_to_metadata(shape_layer, 'colors', colors)
+        self.save_to_metadata(shape_layer, "boxes", boxes)
+        self.save_to_metadata(shape_layer, "labels", labels)
+        self.save_to_metadata(shape_layer, "colors", colors)
 
         # add scores
-        if 'scores' in y.keys():
-            self.save_to_metadata(shape_layer, 'scores', scores)
+        if "scores" in y.keys():
+            self.save_to_metadata(shape_layer, "scores", scores)
 
         # update color
         self.set_colors_of_shapes(shape_layer, self.color_mapping)
@@ -330,10 +332,11 @@ class DatasetViewer(ViewerBase):
             return True
         else:
             raise AssertionError(
-                f'The channel dimension is supposed to be 3 for RGB images. This image has a channel dimension of size {x.shape[0]}')
+                f"The channel dimension is supposed to be 3 for RGB images. This image has a channel dimension of size {x.shape[0]}"
+            )
 
     def get_unique_labels(self, shapes_layer):
-        return set(shapes_layer.metadata['labels'])
+        return set(shapes_layer.metadata["labels"])
 
     def select_all_shapes(self, shape_layer):
         """Selects all shapes within a shape_layer instance."""
@@ -343,13 +346,14 @@ class DatasetViewer(ViewerBase):
         """Select all shapes of certain label"""
         if label not in self.get_unique_labels(shape_layer):
             raise ValueError(
-                f'Label {label} does not exist. Available labels are {self.get_unique_labels(shape_layer)}!')
+                f"Label {label} does not exist. Available labels are {self.get_unique_labels(shape_layer)}!"
+            )
 
         indices = set(self.get_indices_of_shapes(shape_layer, label))
         shape_layer.selected_data = indices
 
     def get_indices_of_shapes(self, shapes_layer, label):
-        return list(np.argwhere(shapes_layer.properties['labels'] == label).flatten())
+        return list(np.argwhere(shapes_layer.properties["labels"] == label).flatten())
 
     def set_colors_of_shapes(self, shape_layer, color_mapping):
         """Iterate over unique labels and assign a color according to color_mapping."""
@@ -359,38 +363,50 @@ class DatasetViewer(ViewerBase):
 
     def set_color_of_shapes(self, shapes_layer, label, color):
         """Assign a color to every shape of a certain label"""
-        self.select_all_shapes_label(shapes_layer, label)  # select only the correct shapes
-        shapes_layer.current_edge_color = color  # change the color of the selected shapes
+        self.select_all_shapes_label(
+            shapes_layer, label
+        )  # select only the correct shapes
+        shapes_layer.current_edge_color = (
+            color  # change the color of the selected shapes
+        )
 
     def gui_text_properties(self, shape_layer):
         container = self.create_gui_text_properties(shape_layer)
-        self.viewer.window.add_dock_widget(container, name='text_properties', area='right')
+        self.viewer.window.add_dock_widget(
+            container, name="text_properties", area="right"
+        )
 
     def gui_score_slider(self, shape_layer):
-        if 'nms_slider' in self.viewer.window._dock_widgets.keys():
-            self.remove_gui('nms_slider')
-            self.shape_layer.events.name.disconnect(callback=self.shape_layer.events.name.callbacks[0])
+        if "nms_slider" in self.viewer.window._dock_widgets.keys():
+            self.remove_gui("nms_slider")
+            self.shape_layer.events.name.disconnect(
+                callback=self.shape_layer.events.name.callbacks[0]
+            )
 
         container = self.create_gui_score_slider(shape_layer)
         self.slider = container
-        self.viewer.window.add_dock_widget(container, name='score_slider', area='right')
+        self.viewer.window.add_dock_widget(container, name="score_slider", area="right")
 
     def gui_nms_slider(self, shape_layer):
-        if 'score_slider' in self.viewer.window._dock_widgets.keys():
-            self.remove_gui('score_slider')
-            self.shape_layer.events.name.disconnect(callback=self.shape_layer.events.name.callbacks[0])
+        if "score_slider" in self.viewer.window._dock_widgets.keys():
+            self.remove_gui("score_slider")
+            self.shape_layer.events.name.disconnect(
+                callback=self.shape_layer.events.name.callbacks[0]
+            )
 
         container = self.create_gui_nms_slider(shape_layer)
         self.slider = container
-        self.viewer.window.add_dock_widget(container, name='nms_slider', area='right')
+        self.viewer.window.add_dock_widget(container, name="nms_slider", area="right")
 
     def remove_gui(self, name):
         widget = self.viewer.window._dock_widgets[name]
         self.viewer.window.remove_dock_widget(widget)
 
     def create_gui_text_properties(self, shape_layer):
-        TextColor = Combobox(choices=shape_layer._colors, name='text color', value='white')
-        TextSize = Slider(min=1, max=50, name='text size', value=1)
+        TextColor = Combobox(
+            choices=shape_layer._colors, name="text color", value="white"
+        )
+        TextSize = Slider(min=1, max=50, name="text size", value=1)
 
         container = Container(widgets=[TextColor, TextSize])
 
@@ -408,8 +424,8 @@ class DatasetViewer(ViewerBase):
         return container
 
     def create_gui_score_slider(self, shape_layer):
-        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='Score', value=0.0)
-        slider_label = Label(name='Score_threshold', value=0.0)
+        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name="Score", value=0.0)
+        slider_label = Label(name="Score_threshold", value=0.0)
 
         container = Container(widgets=[slider, slider_label])
 
@@ -419,22 +435,22 @@ class DatasetViewer(ViewerBase):
             shape_layer.remove_selected()
 
             # create mask and new information
-            mask = np.where(shape_layer.metadata['scores'] > slider.value)
-            new_boxes = np.asarray(shape_layer.metadata['boxes'])[mask]
-            new_labels = shape_layer.metadata['labels'][mask]
-            new_scores = shape_layer.metadata['scores'][mask]
+            mask = np.where(shape_layer.metadata["scores"] > slider.value)
+            new_boxes = np.asarray(shape_layer.metadata["boxes"])[mask]
+            new_labels = shape_layer.metadata["labels"][mask]
+            new_scores = shape_layer.metadata["scores"][mask]
 
             # set the current properties as workaround
-            shape_layer.current_properties['labels'] = new_labels
-            shape_layer.current_properties['scores'] = new_scores
+            shape_layer.current_properties["labels"] = new_labels
+            shape_layer.current_properties["scores"] = new_scores
 
             # add shapes to layer
             if new_boxes.size > 0:
                 shape_layer.add(list(new_boxes))
 
             # set the properties
-            shape_layer.properties['labels'] = new_labels
-            shape_layer.properties['scores'] = new_scores
+            shape_layer.properties["labels"] = new_labels
+            shape_layer.properties["scores"] = new_scores
 
             # change label
             slider_label.value = str(slider.value)
@@ -450,8 +466,8 @@ class DatasetViewer(ViewerBase):
         return container
 
     def create_gui_nms_slider(self, shape_layer):
-        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name='NMS', value=0.0)
-        slider_label = Label(name='IoU_threshold')
+        slider = FloatSlider(min=0.0, max=1.0, step=0.01, name="NMS", value=0.0)
+        slider_label = Label(name="IoU_threshold")
 
         container = Container(widgets=[slider, slider_label])
 
@@ -461,33 +477,38 @@ class DatasetViewer(ViewerBase):
             shape_layer.remove_selected()
 
             # create mask and new information
-            boxes = torch.tensor([make_bbox_napari(box, reverse=True) for box in shape_layer.metadata['boxes']])
-            scores = torch.tensor(shape_layer.metadata['scores'])
+            boxes = torch.tensor(
+                [
+                    make_bbox_napari(box, reverse=True)
+                    for box in shape_layer.metadata["boxes"]
+                ]
+            )
+            scores = torch.tensor(shape_layer.metadata["scores"])
 
             if boxes.size()[0] > 0:
                 mask = nms(boxes, scores, slider.value)  # torch.tensor
                 mask = (np.array(mask),)
 
-                new_boxes = np.asarray(shape_layer.metadata['boxes'])[mask]
-                new_labels = shape_layer.metadata['labels'][mask]
-                new_scores = shape_layer.metadata['scores'][mask]
+                new_boxes = np.asarray(shape_layer.metadata["boxes"])[mask]
+                new_labels = shape_layer.metadata["labels"][mask]
+                new_scores = shape_layer.metadata["scores"][mask]
 
                 # set the current properties as workaround
-                shape_layer.current_properties['labels'] = new_labels
-                shape_layer.current_properties['scores'] = new_scores
+                shape_layer.current_properties["labels"] = new_labels
+                shape_layer.current_properties["scores"] = new_scores
 
                 # add shapes to layer
                 if new_boxes.size > 0:
                     shape_layer.add(list(new_boxes))
 
                 # set the properties
-                shape_layer.properties['labels'] = new_labels
-                shape_layer.properties['scores'] = new_scores
+                shape_layer.properties["labels"] = new_labels
+                shape_layer.properties["scores"] = new_scores
 
                 # set temporary information
-                shape_layer.metadata['boxes_nms'] = list(new_boxes)
-                shape_layer.metadata['labels_nms'] = new_labels
-                shape_layer.metadata['scores_nms'] = new_scores
+                shape_layer.metadata["boxes_nms"] = list(new_boxes)
+                shape_layer.metadata["labels_nms"] = new_labels
+                shape_layer.metadata["scores_nms"] = new_scores
 
             # change label
             slider_label.value = str(slider.value)
@@ -504,18 +525,25 @@ class DatasetViewer(ViewerBase):
 
     def rcnn_transformer(self, sample, transform):
         # dict unpacking
-        x, x_name, y, y_name = sample['x'], sample['x_name'], sample['y'], sample['y_name']
+        x, x_name, y, y_name = (
+            sample["x"],
+            sample["x_name"],
+            sample["y"],
+            sample["y_name"],
+        )
 
         x, y = transform([x], [y])
         x, y = x.tensors[0], y[0]
 
-        return {'x': x, 'y': y, 'x_name': x_name, 'y_name': y_name}
+        return {"x": x, "y": y, "x_name": x_name, "y_name": y_name}
 
 
 class DatasetViewerSingle(DatasetViewer):
-    def __init__(self,
-                 dataset: ObjectDetectionDatasetSingle,
-                 rccn_transform: GeneralizedRCNNTransform = None):
+    def __init__(
+        self,
+        dataset: ObjectDetectionDatasetSingle,
+        rccn_transform: GeneralizedRCNNTransform = None,
+    ):
         self.dataset = dataset
         self.index = 0
 
@@ -552,19 +580,21 @@ class DatasetViewerSingle(DatasetViewer):
 
     def rcnn_transformer(self, sample, transform):
         # dict unpacking
-        x, x_name = sample['x'], sample['x_name']
+        x, x_name = sample["x"], sample["x_name"]
 
         x, _ = transform([x])
         x, _ = x.tensors[0], _
 
-        return {'x': x, 'x_name': x_name}
+        return {"x": x, "x_name": x_name}
 
 
 class Annotator(ViewerBase):
-    def __init__(self,
-                 image_ids: pathlib.Path,
-                 annotation_ids: pathlib.Path = None,
-                 color_mapping: Dict = {}):
+    def __init__(
+        self,
+        image_ids: pathlib.Path,
+        annotation_ids: pathlib.Path = None,
+        color_mapping: Dict = {},
+    ):
 
         self.image_ids = image_ids
         self.annotation_ids = annotation_ids
@@ -602,8 +632,12 @@ class Annotator(ViewerBase):
             def __bool__(self):
                 return True if self.boxes.size > 0 else False
 
-        return [AnnotationObject(name=image_id.stem, boxes=np.array([]), labels=np.array([])) for image_id in
-                self.image_ids]
+        return [
+            AnnotationObject(
+                name=image_id.stem, boxes=np.array([]), labels=np.array([])
+            )
+            for image_id in self.image_ids
+        ]
 
     def increase_index(self):
         self.index += 1
@@ -663,21 +697,27 @@ class Annotator(ViewerBase):
 
     def load_annotations(self):
         # generate a list of names, annotation file must have the same name (stem) as the image.
-        annotation_object_names = [annotation_object.name for annotation_object in self.annotations]
+        annotation_object_names = [
+            annotation_object.name for annotation_object in self.annotations
+        ]
         # iterate over the annotation_ids
         for annotation_id in self.annotation_ids:
             annotation_name = annotation_id.stem
 
-            index_list = self.get_indices_of_sequence(annotation_name, annotation_object_names)
+            index_list = self.get_indices_of_sequence(
+                annotation_name, annotation_object_names
+            )
             if index_list:
                 # TODO: check if it finds more than one index
                 idx = index_list[0]  # get index value of index_list
                 annotation_file = read_json(annotation_id)  # read file
 
                 # store them as np.ndarrays
-                boxes = np.array(annotation_file['boxes'])  # get boxes
-                boxes = np.array([make_bbox_napari(box) for box in boxes])  # transform to napari boxes
-                labels = np.array(annotation_file['labels'])  # get labels
+                boxes = np.array(annotation_file["boxes"])  # get boxes
+                boxes = np.array(
+                    [make_bbox_napari(box) for box in boxes]
+                )  # transform to napari boxes
+                labels = np.array(annotation_file["labels"])  # get labels
 
                 # add information to annotation object
                 self.annotations[idx].boxes = boxes
@@ -694,7 +734,9 @@ class Annotator(ViewerBase):
             for shape_layer in all_shape_layers:
                 boxes = np.array(shape_layer.data)  # numpy.ndarray
                 num_labels = len(boxes)
-                label = shape_layer.metadata['label']  # read the label from the metadata
+                label = shape_layer.metadata[
+                    "label"
+                ]  # read the label from the metadata
                 all_boxes.append(boxes)
                 all_labels.append(np.repeat(np.array([label]), num_labels))
 
@@ -720,7 +762,9 @@ class Annotator(ViewerBase):
     def create_shape_layers(self, annotation_object):
         unique_labels = np.unique(annotation_object.labels)
 
-        shape_layers = [self.create_shape_layer(label, annotation_object) for label in unique_labels]
+        shape_layers = [
+            self.create_shape_layer(label, annotation_object) for label in unique_labels
+        ]
 
         return shape_layers
 
@@ -729,74 +773,83 @@ class Annotator(ViewerBase):
 
         boxes = annotation_object.boxes[mask]
 
-        layer = self.viewer.add_shapes(data=boxes,
-                                       edge_color=self.color_mapping.get(label, 'black'),
-                                       edge_width=self.edge_width,
-                                       face_color='transparent',
-                                       name=str(label))
+        layer = self.viewer.add_shapes(
+            data=boxes,
+            edge_color=self.color_mapping.get(label, "black"),
+            edge_width=self.edge_width,
+            face_color="transparent",
+            name=str(label),
+        )
 
-        layer.metadata['label'] = label
+        layer.metadata["label"] = label
 
         return layer
 
     def add_class(self, label, color: str):
         self.color_mapping[label] = color
-        layer = self.viewer.add_shapes(edge_color=self.color_mapping.get(label, 'black'),
-                                       edge_width=self.edge_width,
-                                       face_color='transparent',
-                                       name=str(label))
+        layer = self.viewer.add_shapes(
+            edge_color=self.color_mapping.get(label, "black"),
+            edge_width=self.edge_width,
+            face_color="transparent",
+            name=str(label),
+        )
 
-        layer.metadata['label'] = label
+        layer.metadata["label"] = label
 
     def export(self, directory: pathlib.Path, name: str = None):
         """Saves the current annotations to disk."""
-        self.save_annotations(self.annotation_object)  # Save annotations in current annotation_object
+        self.save_annotations(
+            self.annotation_object
+        )  # Save annotations in current annotation_object
 
-        boxes = [make_bbox_napari(box, reverse=True).tolist() for box in self.annotation_object.boxes]
+        boxes = [
+            make_bbox_napari(box, reverse=True).tolist()
+            for box in self.annotation_object.boxes
+        ]
         labels = self.annotation_object.labels.tolist()
         if name is None:
-            name = pathlib.Path(self.annotation_object.name).with_suffix('.json')
+            name = pathlib.Path(self.annotation_object.name).with_suffix(".json")
 
-        file = {
-            'labels': labels,
-            'boxes': boxes
-        }
+        file = {"labels": labels, "boxes": boxes}
 
         save_json(file, path=directory / name)
 
         # with open(directory / name, 'w') as fp:  # fp is the file  pointer
         #     json.dump(obj=file, fp=fp, indent=4, sort_keys=False)
 
-        print(f'Annotation {str(name)} saved to {directory}')
+        print(f"Annotation {str(name)} saved to {directory}")
 
     def export_all(self, directory: pathlib.Path):
         """Saves all available annotations to disk."""
-        self.save_annotations(self.annotation_object)  # Save annotations in current annotation_object
+        self.save_annotations(
+            self.annotation_object
+        )  # Save annotations in current annotation_object
 
         for annotation_object in self.annotations:
             if annotation_object:
-                boxes = [make_bbox_napari(box, reverse=True).tolist() for box in annotation_object.boxes]
+                boxes = [
+                    make_bbox_napari(box, reverse=True).tolist()
+                    for box in annotation_object.boxes
+                ]
                 labels = annotation_object.labels.tolist()
-                name = pathlib.Path(annotation_object.name).with_suffix('.json')
+                name = pathlib.Path(annotation_object.name).with_suffix(".json")
 
-                file = {
-                    'labels': labels,
-                    'boxes': boxes
-                }
+                file = {"labels": labels, "boxes": boxes}
 
                 save_json(file, path=directory / name)
 
-                print(f'Annotation {str(name)} saved to {directory}')
+                print(f"Annotation {str(name)} saved to {directory}")
 
 
 class AnchorViewer(ViewerBase):
-    def __init__(self,
-                 image: torch.tensor,
-                 rcnn_transform: GeneralizedRCNNTransform,
-                 feature_map_size: tuple,
-                 anchor_size: Tuple[tuple] = ((128, 256, 512),),
-                 aspect_ratios: Tuple[tuple] = ((1.0,),),
-                 ):
+    def __init__(
+        self,
+        image: torch.tensor,
+        rcnn_transform: GeneralizedRCNNTransform,
+        feature_map_size: tuple,
+        anchor_size: Tuple[tuple] = ((128, 256, 512),),
+        aspect_ratios: Tuple[tuple] = ((1.0,),),
+    ):
         self.image = image
         self.rcnn_transform = rcnn_transform
         self.feature_map_size = feature_map_size
@@ -826,14 +879,18 @@ class AnchorViewer(ViewerBase):
         self.show_sample()
 
     def get_anchors(self):
-        return get_anchor_boxes(self.image,
-                                self.rcnn_transform,
-                                self.feature_map_size,
-                                self.anchor_size,
-                                self.aspect_ratios)
+        return get_anchor_boxes(
+            self.image,
+            self.rcnn_transform,
+            self.feature_map_size,
+            self.anchor_size,
+            self.aspect_ratios,
+        )
 
     def get_first_anchor(self):
-        num_anchor_boxes_per_location = len(self.anchor_size[0]) * len(self.aspect_ratios[0])
+        num_anchor_boxes_per_location = len(self.anchor_size[0]) * len(
+            self.aspect_ratios[0]
+        )
         return [self.anchor_boxes[idx] for idx in range(num_anchor_boxes_per_location)]
 
     def get_center_points(self):
@@ -850,15 +907,16 @@ class AnchorViewer(ViewerBase):
         boxes = self.transform_boxes(self.first_anchor)
 
         # Create an image layer
-        self.viewer.add_image(image, name='Image')
+        self.viewer.add_image(image, name="Image")
 
         # Create a shape layer
-        self.viewer.add_shapes(data=boxes,
-                               face_color='transparent',
-                               edge_color='red',
-                               edge_width=2,
-                               name='Boxes',
-                               )
+        self.viewer.add_shapes(
+            data=boxes,
+            face_color="transparent",
+            edge_color="red",
+            edge_width=2,
+            name="Boxes",
+        )
 
         # Create a point layer
         self.viewer.add_points(data=self.anchor_points)
