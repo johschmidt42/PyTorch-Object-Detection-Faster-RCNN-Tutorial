@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+from typing import List, Union
 
 import importlib_metadata
 import numpy as np
@@ -8,14 +9,15 @@ import pandas as pd
 import torch
 from IPython import get_ipython
 from neptunecontrib.api import log_table
+from torch.utils.data import Dataset
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
-from torchvision.ops import box_convert, box_area
+from torchvision.ops import box_area, box_convert
 
 from pytorch_faster_rcnn_tutorial.metrics.bounding_box import BoundingBox
 from pytorch_faster_rcnn_tutorial.metrics.enumerators import BBFormat, BBType
 
 
-def get_filenames_of_path(path: pathlib.Path, ext: str = "*"):
+def get_filenames_of_path(path: pathlib.Path, ext: str = "*") -> List[pathlib.Path]:
     """
     Returns a list of files in a directory/path. Uses pathlib.
     """
@@ -24,19 +26,19 @@ def get_filenames_of_path(path: pathlib.Path, ext: str = "*"):
     return filenames
 
 
-def read_json(path: pathlib.Path):
+def read_json(path: pathlib.Path) -> dict:
     with open(str(path), "r") as fp:  # fp is the file pointer
         file = json.loads(s=fp.read())
 
     return file
 
 
-def save_json(obj, path: pathlib.Path):
+def save_json(obj, path: pathlib.Path) -> None:
     with open(path, "w") as fp:  # fp is the file pointer
         json.dump(obj=obj, fp=fp, indent=4, sort_keys=False)
 
 
-def collate_double(batch):
+def collate_double(batch) -> tuple:
     """
     collate function for the ObjectDetectionDataSet.
     Only used by the dataloader.
@@ -48,7 +50,7 @@ def collate_double(batch):
     return x, y, x_name, y_name
 
 
-def collate_single(batch):
+def collate_single(batch) -> tuple:
     """
     collate function for the ObjectDetectionDataSetSingle.
     Only used by the dataloader.
@@ -58,7 +60,7 @@ def collate_single(batch):
     return x, x_name
 
 
-def color_mapping_func(labels, mapping):
+def color_mapping_func(labels: list, mapping: dict):
     """Maps an label (integer or string) to a color"""
     color_list = [mapping[value] for value in labels]
     return color_list
@@ -70,7 +72,9 @@ def enable_gui_qt():
     ipython.magic("gui qt")
 
 
-def stats_dataset(dataset, rcnn_transform: GeneralizedRCNNTransform = False):
+def stats_dataset(
+    dataset: Dataset, rcnn_transform: GeneralizedRCNNTransform = False
+) -> dict:
     """
     Iterates over the dataset and returns some stats.
     Can be useful to pick the right anchor box sizes.
@@ -119,14 +123,17 @@ def stats_dataset(dataset, rcnn_transform: GeneralizedRCNNTransform = False):
     return stats
 
 
-def from_file_to_boundingbox(file_name: pathlib.Path, groundtruth: bool = True):
+def from_file_to_boundingbox(
+    file_name: pathlib.Path, groundtruth: bool = True
+) -> List[BoundingBox]:
     """Returns a list of BoundingBox objects from groundtruth or prediction."""
-    file = torch.load(file_name)
-    labels = file["labels"]
-    boxes = file["boxes"]
-    scores = file["scores"] if not groundtruth else [None] * len(boxes)
+    with open(file_name) as json_file:
+        file = json.load(json_file)
+        labels = file["labels"]
+        boxes = file["boxes"]
+        scores = file["scores"] if not groundtruth else [None] * len(boxes)
 
-    gt = BBType.GROUND_TRUTH if groundtruth else BBType.DETECTED
+        gt = BBType.GROUND_TRUTH if groundtruth else BBType.DETECTED
 
     return [
         BoundingBox(

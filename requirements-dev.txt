@@ -1,0 +1,2 @@
+# dev modules
+pytest==7.0.1

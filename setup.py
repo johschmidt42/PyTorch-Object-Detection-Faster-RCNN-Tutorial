@@ -1,4 +1,15 @@
+import pathlib
+
 import setuptools
+
+HERE = pathlib.Path(__file__).parent.absolute()
+
+requirements = list()
+with open(HERE / "requirements.txt") as f:
+    for line in f:
+        line = line.strip()
+        if not line.startswith("#"):
+            requirements.append(line)
 
 setuptools.setup(
     name="pytorch_faster_rcnn_tutorial",
@@ -14,21 +25,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    install_requires=[
-        "numpy",
-        "scikit-image",
-        "sklearn",
-        "importlib_metadata",
-        "neptune-contrib",
-        "napari[all]==0.4.9",
-        "jupyterlab==3.0.13",
-        "ipywidgets==7.6.3",
-        "albumentations==0.5.2",
-        "pytorch-lightning==1.3.5",
-        "magicgui==0.2.9",
-        "torch==1.8.1",
-        "torchvision==0.9.1",
-        "torchsummary==1.5.1",
-        "torchmetrics==0.2.0",
-    ],
+    install_requires=requirements,
 )

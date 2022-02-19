@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from itertools import chain
-from typing import Tuple, List
+from typing import List, Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -8,20 +8,23 @@ from torchvision.models.detection.faster_rcnn import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.ops import MultiScaleRoIAlign
 
+from pytorch_faster_rcnn_tutorial.backbone_resnet import (
+    BackboneWithFPN,
+    ResNetBackbones,
+    get_resnet_backbone,
+    get_resnet_fpn_backbone,
+)
 from pytorch_faster_rcnn_tutorial.metrics.enumerators import MethodAveragePrecision
 from pytorch_faster_rcnn_tutorial.metrics.pascal_voc_evaluator import (
     get_pascalvoc_metrics,
-)
-from pytorch_faster_rcnn_tutorial.backbone_resnet import (
-    get_resnet_backbone,
-    get_resnet_fpn_backbone,
 )
 from pytorch_faster_rcnn_tutorial.utils import from_dict_to_boundingbox
 
 
 def get_anchor_generator(
-    anchor_size: Tuple[tuple] = None, aspect_ratios: Tuple[tuple] = None
-):
+    anchor_size: Optional[Tuple[Tuple[int]]] = None,
+    aspect_ratios: Optional[Tuple[Tuple[float]]] = None,
+) -> AnchorGenerator:
     """Returns the anchor generator."""
     if anchor_size is None:
         anchor_size = ((16,), (32,), (64,), (128,))
@@ -33,8 +36,10 @@ def get_anchor_generator(
 
 
 def get_roi_pool(
-    featmap_names: List[str] = None, output_size: int = 7, sampling_ratio: int = 2
-):
+    featmap_names: Optional[List[str]] = None,
+    output_size: int = 7,
+    sampling_ratio: int = 2,
+) -> MultiScaleRoIAlign:
     """Returns the ROI Pooling"""
     if featmap_names is None:
         # default for resnet with FPN
@@ -49,7 +54,7 @@ def get_roi_pool(
     return roi_pooler
 
 
-def get_fasterRCNN(
+def get_faster_rcnn(
     backbone: torch.nn.Module,
     anchor_generator: AnchorGenerator,
     roi_pooler: MultiScaleRoIAlign,
@@ -59,7 +64,7 @@ def get_fasterRCNN(
     min_size: int = 512,
     max_size: int = 1024,
     **kwargs,
-):
+) -> FasterRCNN:
     """Returns the Faster-RCNN model. Default normalization: ImageNet"""
     model = FasterRCNN(
         backbone=backbone,
@@ -81,23 +86,32 @@ def get_fasterRCNN(
     return model
 
 
-def get_fasterRCNN_resnet(
+def get_faster_rcnn_resnet(
     num_classes: int,
-    backbone_name: str,
-    anchor_size: List[float],
-    aspect_ratios: List[float],
+    backbone_name: ResNetBackbones,
+    anchor_size: Tuple[Tuple[int, ...], ...],
+    aspect_ratios: Tuple[Tuple[float, ...]],
     fpn: bool = True,
     min_size: int = 512,
     max_size: int = 1024,
     **kwargs,
-):
-    """Returns the Faster-RCNN model with resnet backbone with and without fpn."""
+) -> FasterRCNN:
+    """
+    Returns the Faster-RCNN model with resnet backbone with and without fpn.
+    anchor_size can be for example: ((16,), (32,), (64,), (128,))
+    aspect_ratios can be for example: ((0.5, 1.0, 2.0),)
+
+    Please note that you specify the aspect ratios for all layers, because we perform:
+    aspect_ratios = aspect_ratios * len(anchor_size)
+
+    If you wish more control, change this line accordingly.
+    """
 
     # Backbone
     if fpn:
-        backbone = get_resnet_fpn_backbone(backbone_name=backbone_name)
+        backbone: BackboneWithFPN = get_resnet_fpn_backbone(backbone_name=backbone_name)
     else:
-        backbone = get_resnet_backbone(backbone_name=backbone_name)
+        backbone: torch.nn.Sequential = get_resnet_backbone(backbone_name=backbone_name)
 
     # Anchors
     anchor_size = anchor_size
@@ -107,13 +121,15 @@ def get_fasterRCNN_resnet(
     )
 
     # ROI Pool
+    # performing a forward pass to get the number of featuremap names
+    # this is required for the get_roi_pool function
+    # TODO: there is probably a better way to get the featuremap names (without a forward pass)
     with torch.no_grad():
         backbone.eval()
         random_input = torch.rand(size=(1, 3, 512, 512))
         features = backbone(random_input)
 
     if isinstance(features, torch.Tensor):
-
         features = OrderedDict([("0", features)])
 
     featmap_names = [key for key in features.keys() if key.isnumeric()]
@@ -121,7 +137,7 @@ def get_fasterRCNN_resnet(
     roi_pool = get_roi_pool(featmap_names=featmap_names)
 
     # Model
-    return get_fasterRCNN(
+    return get_faster_rcnn(
         backbone=backbone,
         anchor_generator=anchor_generator,
         roi_pooler=roi_pool,
@@ -132,7 +148,7 @@ def get_fasterRCNN_resnet(
     )
 
 
-class FasterRCNN_lightning(pl.LightningModule):
+class FasterRCNNLightning(pl.LightningModule):
     def __init__(
         self, model: torch.nn.Module, lr: float = 0.0001, iou_threshold: float = 0.5
     ):
@@ -157,6 +173,7 @@ class FasterRCNN_lightning(pl.LightningModule):
         self.max_size = model.max_size
 
         # Save hyperparameters
+        # Saves model arguments to the ``hparams`` attribute.
         self.save_hyperparameters()
 
     def forward(self, x):
@@ -181,13 +198,13 @@ class FasterRCNN_lightning(pl.LightningModule):
         preds = self.model(x)
 
         gt_boxes = [
-            from_dict_to_boundingbox(target, name=name, groundtruth=True)
+            from_dict_to_boundingbox(file=target, name=name, groundtruth=True)
             for target, name in zip(y, x_name)
         ]
         gt_boxes = list(chain(*gt_boxes))
 
         pred_boxes = [
-            from_dict_to_boundingbox(pred, name=name, groundtruth=False)
+            from_dict_to_boundingbox(file=pred, name=name, groundtruth=False)
             for pred, name in zip(preds, x_name)
         ]
         pred_boxes = list(chain(*pred_boxes))
@@ -208,8 +225,8 @@ class FasterRCNN_lightning(pl.LightningModule):
             generate_table=True,
         )
 
-        per_class, mAP = metric["per_class"], metric["mAP"]
-        self.log("Validation_mAP", mAP)
+        per_class, m_ap = metric["per_class"], metric["m_ap"]
+        self.log("Validation_mAP", m_ap)
 
         for key, value in per_class.items():
             self.log(f"Validation_AP_{key}", value["AP"])
@@ -222,13 +239,13 @@ class FasterRCNN_lightning(pl.LightningModule):
         preds = self.model(x)
 
         gt_boxes = [
-            from_dict_to_boundingbox(target, name=name, groundtruth=True)
+            from_dict_to_boundingbox(file=target, name=name, groundtruth=True)
             for target, name in zip(y, x_name)
         ]
         gt_boxes = list(chain(*gt_boxes))
 
         pred_boxes = [
-            from_dict_to_boundingbox(pred, name=name, groundtruth=False)
+            from_dict_to_boundingbox(file=pred, name=name, groundtruth=False)
             for pred, name in zip(preds, x_name)
         ]
         pred_boxes = list(chain(*pred_boxes))
@@ -249,8 +266,8 @@ class FasterRCNN_lightning(pl.LightningModule):
             generate_table=True,
         )
 
-        per_class, mAP = metric["per_class"], metric["mAP"]
-        self.log("Test_mAP", mAP)
+        per_class, m_ap = metric["per_class"], metric["m_ap"]
+        self.log("Test_mAP", m_ap)
 
         for key, value in per_class.items():
             self.log(f"Test_AP_{key}", value["AP"])
