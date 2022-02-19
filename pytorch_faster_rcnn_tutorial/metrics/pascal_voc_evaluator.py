@@ -40,12 +40,12 @@ def calculate_ap_11_point_interp(rec, prec, recall_vals=11):
     # mpre.append(0)
     [mpre.append(e) for e in prec]
     # mpre.append(0)
-    recallValues = np.linspace(0, 1, recall_vals)
-    recallValues = list(recallValues[::-1])
-    rhoInterp = []
+    recall_values = np.linspace(0, 1, recall_vals)
+    recall_values = list(recall_values[::-1])
+    rho_interp = []
     recallValid = []
-    # For each recallValues (0, 0.1, 0.2, ... , 1)
-    for r in recallValues:
+    # For each recall_values (0, 0.1, 0.2, ... , 1)
+    for r in recall_values:
         # Obtain all recall values higher or equal than r
         argGreaterRecalls = np.argwhere(mrec[:] >= r)
         pmax = 0
@@ -53,9 +53,9 @@ def calculate_ap_11_point_interp(rec, prec, recall_vals=11):
         if argGreaterRecalls.size != 0:
             pmax = max(mpre[argGreaterRecalls.min() :])
         recallValid.append(r)
-        rhoInterp.append(pmax)
+        rho_interp.append(pmax)
     # By definition AP = sum(max(precision whose recall is above r))/11
-    ap = sum(rhoInterp) / len(recallValues)
+    ap = sum(rho_interp) / len(recall_values)
     # Generating values for the plot
     rvals = []
     rvals.append(recallValid[0])
@@ -63,9 +63,9 @@ def calculate_ap_11_point_interp(rec, prec, recall_vals=11):
     rvals.append(0)
     pvals = []
     pvals.append(0)
-    [pvals.append(e) for e in rhoInterp]
+    [pvals.append(e) for e in rho_interp]
     pvals.append(0)
-    # rhoInterp = rhoInterp[::-1]
+    # rho_interp = rho_interp[::-1]
     cc = []
     for i in range(len(rvals)):
         p = (rvals[i], pvals[i - 1])
@@ -74,9 +74,9 @@ def calculate_ap_11_point_interp(rec, prec, recall_vals=11):
         p = (rvals[i], pvals[i])
         if p not in cc:
             cc.append(p)
-    recallValues = [i[0] for i in cc]
-    rhoInterp = [i[1] for i in cc]
-    return [ap, rhoInterp, recallValues, None]
+    recall_values = [i[0] for i in cc]
+    rho_interp = [i[1] for i in cc]
+    return [ap, rho_interp, recall_values, None]
 
 
 def get_pascalvoc_metrics(
@@ -90,7 +90,7 @@ def get_pascalvoc_metrics(
     Args:
         boundingboxes: Object of the class BoundingBoxes representing ground truth and detected
         bounding boxes;
-        iou_threshold: IOU threshold indicating which detections will be considered TP or FP
+        iou_threshold: IOU threshold indicating which detections will be considered tp or fp
         (dget_pascalvoc_metricsns:
         A dictioanry contains information and metrics of each class.
         The key represents the class and the values are:
@@ -101,8 +101,8 @@ def get_pascalvoc_metrics(
         dict['interpolated precision']: interpolated precision values;
         dict['interpolated recall']: interpolated recall values;
         dict['total positives']: total number of ground truth positives;
-        dict['total TP']: total number of True Positive detections;
-        dict['total FP']: total number of False Positive detections;"""
+        dict['total tp']: total number of True Positive detections;
+        dict['total fp']: total number of False Positive detections;"""
     ret = {}
     # Get classes of all bounding boxes separating them by classes
     gt_classes_only = []
@@ -129,8 +129,8 @@ def get_pascalvoc_metrics(
             a
             for a in sorted(v["det"], key=lambda bb: bb.get_confidence(), reverse=True)
         ]
-        TP = np.zeros(len(dects))
-        FP = np.zeros(len(dects))
+        tp = np.zeros(len(dects))
+        fp = np.zeros(len(dects))
         # create dictionary with amount of expected detections for each image
         detected_gt_per_image = Counter([bb.get_image_name() for bb in gt_boxes])
         for key, val in detected_gt_per_image.items():
@@ -139,10 +139,10 @@ def get_pascalvoc_metrics(
         dict_table = {
             "image": [],
             "confidence": [],
-            "TP": [],
-            "FP": [],
-            "acc TP": [],
-            "acc FP": [],
+            "tp": [],
+            "fp": [],
+            "acc tp": [],
+            "acc fp": [],
             "precision": [],
             "recall": [],
         }
@@ -157,48 +157,48 @@ def get_pascalvoc_metrics(
             # Find ground truth image
             gt = [gt for gt in classes_bbs[c]["gt"] if gt.get_image_name() == img_det]
             # Get the maximum iou among all detectins in the image
-            iouMax = sys.float_info.min
+            iou_max = sys.float_info.min
             # Given the detection det, find ground-truth with the highest iou
             for j, g in enumerate(gt):
                 # print('Ground truth gt => %s' %
                 #       str(g.get_absolute_bounding_box(format=BBFormat.XYX2Y2)))
                 iou = BoundingBox.iou(det, g)
-                if iou > iouMax:
-                    iouMax = iou
+                if iou > iou_max:
+                    iou_max = iou
                     id_match_gt = j
-            # Assign detection as TP or FP
-            if iouMax >= iou_threshold:
+            # Assign detection as tp or fp
+            if iou_max >= iou_threshold:
                 # gt was not matched with any detection
                 if detected_gt_per_image[img_det][id_match_gt] == 0:
-                    TP[idx_det] = 1  # detection is set as true positive
+                    tp[idx_det] = 1  # detection is set as true positive
                     detected_gt_per_image[img_det][
                         id_match_gt
                     ] = 1  # set flag to identify gt as already 'matched'
-                    # print("TP")
+                    # print("tp")
                     if generate_table:
-                        dict_table["TP"].append(1)
-                        dict_table["FP"].append(0)
+                        dict_table["tp"].append(1)
+                        dict_table["fp"].append(0)
                 else:
-                    FP[idx_det] = 1  # detection is set as false positive
+                    fp[idx_det] = 1  # detection is set as false positive
                     if generate_table:
-                        dict_table["FP"].append(1)
-                        dict_table["TP"].append(0)
-                    # print("FP")
+                        dict_table["fp"].append(1)
+                        dict_table["tp"].append(0)
+                    # print("fp")
             # - A detected "cat" is overlaped with a GT "cat" with IOU >= iou_threshold.
             else:
-                FP[idx_det] = 1  # detection is set as false positive
+                fp[idx_det] = 1  # detection is set as false positive
                 if generate_table:
-                    dict_table["FP"].append(1)
-                    dict_table["TP"].append(0)
-                # print("FP")
+                    dict_table["fp"].append(1)
+                    dict_table["tp"].append(0)
+                # print("fp")
         # compute precision, recall and average precision
-        acc_FP = np.cumsum(FP)
-        acc_TP = np.cumsum(TP)
-        rec = acc_TP / npos
-        prec = np.divide(acc_TP, (acc_FP + acc_TP))
+        acc_fp = np.cumsum(fp)
+        acc_tp = np.cumsum(tp)
+        rec = acc_tp / npos
+        prec = np.divide(acc_tp, (acc_fp + acc_tp))
         if generate_table:
-            dict_table["acc TP"] = list(acc_TP)
-            dict_table["acc FP"] = list(acc_FP)
+            dict_table["acc tp"] = list(acc_tp)
+            dict_table["acc fp"] = list(acc_fp)
             dict_table["precision"] = list(prec)
             dict_table["recall"] = list(rec)
             table = pd.DataFrame(dict_table)
@@ -219,28 +219,28 @@ def get_pascalvoc_metrics(
             "interpolated precision": mpre,
             "interpolated recall": mrec,
             "total positives": npos,
-            "total TP": np.sum(TP),
-            "total FP": np.sum(FP),
+            "total tp": np.sum(tp),
+            "total fp": np.sum(fp),
             "method": method,
             "iou": iou_threshold,
             "table": table,
         }
-    # For mAP, only the classes in the gt set should be considered
-    mAP = sum([v["AP"] for k, v in ret.items() if k in gt_classes_only]) / len(
+    # For m_ap, only the classes in the gt set should be considered
+    m_ap = sum([v["AP"] for k, v in ret.items() if k in gt_classes_only]) / len(
         gt_classes_only
     )
-    return {"per_class": ret, "mAP": mAP}
+    return {"per_class": ret, "m_ap": m_ap}
 
 
 def plot_precision_recall_curve(
     results,
-    showAP=False,
-    showInterpolatedPrecision=False,
-    savePath=None,
-    showGraphic=True,
+    show_ap=False,
+    show_interpolated_precision=False,
+    save_path=None,
+    show_graphic=True,
 ):
     result = None
-    # Each resut represents a class
+    # Each result represents a class
     for classId, result in results.items():
         if result is None:
             raise IOError(f"Error: Class {classId} could not be found.")
@@ -252,7 +252,7 @@ def plot_precision_recall_curve(
         mrec = result["interpolated recall"]
         method = result["method"]
         plt.close()
-        if showInterpolatedPrecision:
+        if show_interpolated_precision:
             if method == MethodAveragePrecision.EVERY_POINT_INTERPOLATION:
                 plt.plot(
                     mrec, mpre, "--r", label="Interpolated precision (every point)"
@@ -264,14 +264,14 @@ def plot_precision_recall_curve(
                 for idx in range(len(mrec)):
                     r = mrec[idx]
                     if r not in nrec:
-                        idxEq = np.argwhere(mrec == r)
+                        idx_eq = np.argwhere(mrec == r)
                         nrec.append(r)
-                        nprec.append(max([mpre[int(id)] for id in idxEq]))
+                        nprec.append(max([mpre[int(id)] for id in idx_eq]))
                 plt.plot(nrec, nprec, "or", label="11-point interpolated precision")
         plt.plot(recall, precision, label="Precision")
         plt.xlabel("recall")
         plt.ylabel("precision")
-        if showAP:
+        if show_ap:
             ap_str = "{0:.2f}%".format(average_precision * 100)
             # ap_str = "{0:.4f}%".format(average_precision * 100)
             plt.title(
@@ -332,9 +332,9 @@ def plot_precision_recall_curve(
         #                 xytext=vecPositions[idx], textcoords='offset points',
         #                 arrowprops=dict(arrowstyle="->", connectionstyle="arc3"),
         #                 bbox=box)
-        if savePath is not None:
-            plt.savefig(os.path.join(savePath, classId + ".png"))
-        if showGraphic is True:
+        if save_path is not None:
+            plt.savefig(os.path.join(save_path, classId + ".png"))
+        if show_graphic is True:
             plt.show()
             # plt.waitforbuttonpress()
             plt.pause(0.05)

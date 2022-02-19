@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pytorch_faster_rcnn_tutorial.metrics.enumerators import (
     BBFormat,
     BBType,
@@ -14,14 +16,14 @@ class BoundingBox:
 
     def __init__(
         self,
-        image_name,
-        class_id=None,
-        coordinates=None,
-        type_coordinates=CoordinatesType.ABSOLUTE,
-        img_size=None,
-        bb_type=BBType.GROUND_TRUTH,
-        confidence=None,
-        format=BBFormat.XYWH,
+        image_name: str,
+        class_id: Optional[str] = None,
+        coordinates: Optional[tuple] = None,
+        type_coordinates: CoordinatesType = CoordinatesType.ABSOLUTE,
+        img_size: Optional[tuple] = None,
+        bb_type: BBType = BBType.GROUND_TRUTH,
+        confidence: Optional[float] = None,
+        format: BBFormat = BBFormat.XYWH,
     ):
         """ Constructor.
         Parameters
@@ -149,9 +151,9 @@ class BoundingBox:
             bottom-right-X, bottom-right-Y).
         """
         if format == BBFormat.XYWH:
-            return (self._x, self._y, self._w, self._h)
+            return self._x, self._y, self._w, self._h
         elif format == BBFormat.XYX2Y2:
-            return (self._x, self._y, self._x2, self._y2)
+            return self._x, self._y, self._x2, self._y2
 
     def get_relative_bounding_box(self, img_size=None):
         """Get bounding box in its relative format.
@@ -233,7 +235,7 @@ class BoundingBox:
         tupe
             Image size in pixels in the format (width, height)=>(int, int)
         """
-        return (self._width_img, self._height_img)
+        return self._width_img, self._height_img
 
     def get_area(self):
         # assert isclose(self._w * self._h, (self._x2 - self._x) * (self._y2 - self._y))
@@ -264,7 +266,15 @@ class BoundingBox:
         abs_bb_xywh = self.get_absolute_bounding_box(format=BBFormat.XYWH)
         abs_bb_xyx2y2 = self.get_absolute_bounding_box(format=BBFormat.XYX2Y2)
         area = self.get_area()
-        return f"image name: {self._image_name}\nimage size: {self.get_image_size()}\nclass: {self._class_id}\nbb (XYWH): {abs_bb_xywh}\nbb (X1Y1X2Y2): {abs_bb_xyx2y2}\narea: {area}\nbb_type: {self._bb_type}"
+        return (
+            f"image name: {self._image_name}\n"
+            f"image size: {self.get_image_size()}\n"
+            f"class: {self._class_id}\n"
+            f"bb (XYWH): {abs_bb_xywh}\n"
+            f"bb (X1Y1X2Y2): {abs_bb_xyx2y2}\n"
+            f"area: {area}\n"
+            f"bb_type: {self._bb_type}"
+        )
 
     def __eq__(self, other):
         if not isinstance(other, BoundingBox):
@@ -272,120 +282,64 @@ class BoundingBox:
             return False
         return str(self) == str(other)
 
-    @staticmethod
-    def compare(det1, det2):
-        """Static function to compare if two bounding boxes represent the same area in the image,
-            regardless the format of their boxes.
-        Parameters
-        ----------
-        det1 : BoundingBox
-            BoundingBox object representing one bounding box.
-        dete2 : BoundingBox
-            BoundingBox object representing another bounding box.
-        Returns
-        -------
-        bool
-            True if both bounding boxes have the same coordinates, otherwise False.
-        """
-        det1BB = det1.getAbsoluteBoundingBox()
-        det1img_size = det1.getImageSize()
-        det2BB = det2.getAbsoluteBoundingBox()
-        det2img_size = det2.getImageSize()
-
-        if (
-            det1.get_class_id() == det2.get_class_id()
-            and det1.get_confidence() == det2.get_confidence()
-            and det1BB[0] == det2BB[0]
-            and det1BB[1] == det2BB[1]
-            and det1BB[2] == det2BB[2]
-            and det1BB[3] == det2BB[3]
-            and det1img_size[0] == det1img_size[0]
-            and det2img_size[1] == det2img_size[1]
-        ):
-            return True
-        return False
+    def __repr__(self):
+        abs_bb_xywh = self.get_absolute_bounding_box(format=BBFormat.XYWH)
+        abs_bb_xyx2y2 = self.get_absolute_bounding_box(format=BBFormat.XYX2Y2)
+        area = self.get_area()
+        return f"{self._bb_type}(bb (XYWH): {abs_bb_xywh}, bb (X1Y1X2Y2): {abs_bb_xyx2y2}, area: {area}), class: {self._class_id})"
 
     @staticmethod
-    def clone(bounding_box):
-        """Static function to clone a given bounding box.
-        Parameters
-        ----------
-        bounding_box : BoundingBox
-            Bounding box object to be cloned.
-        Returns
-        -------
-        BoundingBox
-            Cloned BoundingBox object.
-        """
-        absBB = bounding_box.get_absolute_bounding_box(format=BBFormat.XYWH)
-        # return (self._x,self._y,self._x2,self._y2)
-        new_bounding_box = BoundingBox(
-            bounding_box.get_image_name(),
-            bounding_box.get_class_id(),
-            absBB[0],
-            absBB[1],
-            absBB[2],
-            absBB[3],
-            type_coordinates=bounding_box.getCoordinatesType(),
-            img_size=bounding_box.getImageSize(),
-            bb_type=bounding_box.getbb_type(),
-            confidence=bounding_box.getConfidence(),
-            format=BBFormat.XYWH,
-        )
-        return new_bounding_box
-
-    @staticmethod
-    def iou(boxA, boxB):
-        coords_A = boxA.get_absolute_bounding_box(format=BBFormat.XYX2Y2)
-        coords_B = boxB.get_absolute_bounding_box(format=BBFormat.XYX2Y2)
+    def iou(box_a, box_b):
+        coords_a = box_a.get_absolute_bounding_box(format=BBFormat.XYX2Y2)
+        coords_b = box_b.get_absolute_bounding_box(format=BBFormat.XYX2Y2)
         # if boxes do not intersect
-        if BoundingBox.have_intersection(coords_A, coords_B) is False:
+        if BoundingBox.have_intersection(coords_a, coords_b) is False:
             return 0
-        interArea = BoundingBox.get_intersection_area(coords_A, coords_B)
-        union = BoundingBox.get_union_areas(boxA, boxB, interArea=interArea)
+        inter_area = BoundingBox.get_intersection_area(coords_a, coords_b)
+        union = BoundingBox.get_union_areas(box_a, box_b, inter_area=inter_area)
         # intersection over union
-        iou = interArea / union
+        iou = inter_area / union
         assert iou >= 0
         return iou
 
     # boxA = (Ax1,Ay1,Ax2,Ay2)
     # boxB = (Bx1,By1,Bx2,By2)
     @staticmethod
-    def have_intersection(boxA, boxB):
-        if isinstance(boxA, BoundingBox):
-            boxA = boxA.get_absolute_bounding_box(BBFormat.XYX2Y2)
-        if isinstance(boxB, BoundingBox):
-            boxB = boxB.get_absolute_bounding_box(BBFormat.XYX2Y2)
-        if boxA[0] > boxB[2]:
+    def have_intersection(box_a, box_b):
+        if isinstance(box_a, BoundingBox):
+            box_a = box_a.get_absolute_bounding_box(BBFormat.XYX2Y2)
+        if isinstance(box_b, BoundingBox):
+            box_b = box_b.get_absolute_bounding_box(BBFormat.XYX2Y2)
+        if box_a[0] > box_b[2]:
             return False  # boxA is right of boxB
-        if boxB[0] > boxA[2]:
+        if box_b[0] > box_a[2]:
             return False  # boxA is left of boxB
-        if boxA[3] < boxB[1]:
+        if box_a[3] < box_b[1]:
             return False  # boxA is above boxB
-        if boxA[1] > boxB[3]:
+        if box_a[1] > box_b[3]:
             return False  # boxA is below boxB
         return True
 
     @staticmethod
-    def get_intersection_area(boxA, boxB):
-        if isinstance(boxA, BoundingBox):
-            boxA = boxA.get_absolute_bounding_box(BBFormat.XYX2Y2)
-        if isinstance(boxB, BoundingBox):
-            boxB = boxB.get_absolute_bounding_box(BBFormat.XYX2Y2)
-        xA = max(boxA[0], boxB[0])
-        yA = max(boxA[1], boxB[1])
-        xB = min(boxA[2], boxB[2])
-        yB = min(boxA[3], boxB[3])
+    def get_intersection_area(box_a, box_b):
+        if isinstance(box_a, BoundingBox):
+            box_a = box_a.get_absolute_bounding_box(BBFormat.XYX2Y2)
+        if isinstance(box_b, BoundingBox):
+            box_b = box_b.get_absolute_bounding_box(BBFormat.XYX2Y2)
+        x_a = max(box_a[0], box_b[0])
+        y_a = max(box_a[1], box_b[1])
+        x_b = min(box_a[2], box_b[2])
+        y_b = min(box_a[3], box_b[3])
         # intersection area
-        return (xB - xA + 1) * (yB - yA + 1)
+        return (x_b - x_a + 1) * (y_b - y_a + 1)
 
     @staticmethod
-    def get_union_areas(boxA, boxB, interArea=None):
-        area_A = boxA.get_area()
-        area_B = boxB.get_area()
-        if interArea is None:
-            interArea = BoundingBox.get_intersection_area(boxA, boxB)
-        return float(area_A + area_B - interArea)
+    def get_union_areas(box_a, box_b, inter_area=None):
+        area_a = box_a.get_area()
+        area_b = box_b.get_area()
+        if inter_area is None:
+            inter_area = BoundingBox.get_intersection_area(box_a, box_b)
+        return float(area_a + area_b - inter_area)
 
     @staticmethod
     def get_amount_bounding_box_all_classes(bounding_boxes, reverse=False):

@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List, Callable
+from typing import Callable, List
 
 import albumentations as A
 import numpy as np
@@ -8,25 +8,25 @@ from sklearn.externals._pilutil import bytescale
 from torchvision.ops import nms
 
 
-def normalize_01(inp: np.ndarray):
+def normalize_01(inp: np.ndarray) -> np.ndarray:
     """Squash image input to the value range [0, 1] (no clipping)"""
     inp_out = (inp - np.min(inp)) / np.ptp(inp)
     return inp_out
 
 
-def normalize(inp: np.ndarray, mean: float, std: float):
+def normalize(inp: np.ndarray, mean: float, std: float) -> np.ndarray:
     """Normalize based on mean and standard deviation."""
     inp_out = (inp - mean) / std
     return inp_out
 
 
-def re_normalize(inp: np.ndarray, low: int = 0, high: int = 255):
+def re_normalize(inp: np.ndarray, low: int = 0, high: int = 255) -> np.ndarray:
     """Normalize the data to a certain range. Default: [0-255]"""
     inp_out = bytescale(inp, low=low, high=high)
     return inp_out
 
 
-def clip_bbs(inp: np.ndarray, bbs: np.ndarray):
+def clip_bbs(inp: np.ndarray, bbs: np.ndarray) -> np.array:
     """
     If the bounding boxes exceed one dimension, they are clipped to the dim's maximum.
     Bounding boxes are expected to be in xyxy format.
@@ -58,7 +58,7 @@ def clip_bbs(inp: np.ndarray, bbs: np.ndarray):
     return np.array(output)
 
 
-def map_class_to_int(labels: List[str], mapping: dict):
+def map_class_to_int(labels: List[str], mapping: dict) -> np.ndarray:
     """Maps a string to an integer."""
     labels = np.array(labels)
     dummy = np.empty_like(labels)
@@ -68,7 +68,7 @@ def map_class_to_int(labels: List[str], mapping: dict):
     return dummy.astype(np.uint8)
 
 
-def apply_nms(target: dict, iou_threshold):
+def apply_nms(target: dict, iou_threshold) -> dict:
     """Non-maximum Suppression"""
     boxes = torch.tensor(target["boxes"])
     labels = torch.tensor(target["labels"])
@@ -85,7 +85,7 @@ def apply_nms(target: dict, iou_threshold):
     return target
 
 
-def apply_score_threshold(target: dict, score_threshold):
+def apply_score_threshold(target: dict, score_threshold) -> dict:
     """Removes bounding box predictions with low scores."""
     boxes = target["boxes"]
     labels = target["labels"]

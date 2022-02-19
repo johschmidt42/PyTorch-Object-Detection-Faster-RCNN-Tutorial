@@ -1,28 +1,31 @@
 import pathlib
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import napari
 import numpy as np
 import torch
-from magicgui.widgets import Combobox, Slider
-from magicgui.widgets import FloatSlider, Container, Label
+from magicgui.widgets import Combobox, Container, FloatSlider, Label, Slider
 from napari.layers import Shapes
 from skimage.io import imread
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
-from torchvision.ops import box_convert
-from torchvision.ops import nms
+from torchvision.ops import box_convert, nms
 
 from pytorch_faster_rcnn_tutorial.anchor_generator import get_anchor_boxes
-from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDataSet
-from pytorch_faster_rcnn_tutorial.datasets import ObjectDetectionDatasetSingle
+from pytorch_faster_rcnn_tutorial.datasets import (
+    ObjectDetectionDataSet,
+    ObjectDetectionDatasetSingle,
+)
 from pytorch_faster_rcnn_tutorial.transformations import re_normalize
-from pytorch_faster_rcnn_tutorial.utils import color_mapping_func
-from pytorch_faster_rcnn_tutorial.utils import enable_gui_qt
-from pytorch_faster_rcnn_tutorial.utils import read_json, save_json
+from pytorch_faster_rcnn_tutorial.utils import (
+    color_mapping_func,
+    enable_gui_qt,
+    read_json,
+    save_json,
+)
 
 
-def make_bbox_napari(bbox, reverse=False):
+def make_bbox_napari(bbox: np.ndarray, reverse: bool = False) -> np.ndarray:
     """
     Get the coordinates of the 4 corners of a
     bounding box - expected to be in 'xyxy' format.
@@ -55,7 +58,7 @@ def make_bbox_napari(bbox, reverse=False):
 
 def get_center_bounding_box(boxes: torch.tensor):
     """Returns the center points of given bounding boxes."""
-    return box_convert(boxes, in_fmt="xyxy", out_fmt="cxcywh")[:, :2]
+    return box_convert(boxes=boxes, in_fmt="xyxy", out_fmt="cxcywh")[:, :2]
 
 
 class ViewerBase:
@@ -129,7 +132,7 @@ class DatasetViewer(ViewerBase):
         self,
         dataset: ObjectDetectionDataSet,
         color_mapping: Dict,
-        rccn_transform: GeneralizedRCNNTransform = None,
+        rccn_transform: Optional[GeneralizedRCNNTransform] = None,
     ):
         self.dataset = dataset
         self.index = 0
@@ -542,7 +545,7 @@ class DatasetViewerSingle(DatasetViewer):
     def __init__(
         self,
         dataset: ObjectDetectionDatasetSingle,
-        rccn_transform: GeneralizedRCNNTransform = None,
+        rccn_transform: Optional[GeneralizedRCNNTransform] = None,
     ):
         self.dataset = dataset
         self.index = 0
@@ -592,7 +595,7 @@ class Annotator(ViewerBase):
     def __init__(
         self,
         image_ids: pathlib.Path,
-        annotation_ids: pathlib.Path = None,
+        annotation_ids: Optional[pathlib.Path] = None,
         color_mapping: Dict = {},
     ):
 

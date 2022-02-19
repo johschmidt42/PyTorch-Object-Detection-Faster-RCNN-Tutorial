@@ -20,6 +20,6 @@ DOI = {10.3390/electronics10030279}
 }
 ```
 
-
 You can find these files in their repo, the code here is slightly adjusted.
 
+An example on how to use is it, is given in [pascal_voc_evaluator_example.py](pascal_voc_evaluator_example.py).

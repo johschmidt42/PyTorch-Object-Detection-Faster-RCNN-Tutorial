@@ -1,18 +1,22 @@
 import pathlib
 from multiprocessing import Pool
-from typing import List, Dict
+from typing import Dict, List
 
 import torch
 from skimage.color import rgba2rgb
 from skimage.io import imread
+from torch.utils.data import Dataset
 from torchvision.ops import box_convert
 
-from pytorch_faster_rcnn_tutorial.transformations import ComposeDouble, ComposeSingle
-from pytorch_faster_rcnn_tutorial.transformations import map_class_to_int
+from pytorch_faster_rcnn_tutorial.transformations import (
+    ComposeDouble,
+    ComposeSingle,
+    map_class_to_int,
+)
 from pytorch_faster_rcnn_tutorial.utils import read_json
 
 
-class ObjectDetectionDataSet(torch.utils.data.Dataset):
+class ObjectDetectionDataSet(Dataset):
     """
     Builds a dataset with images and their respective targets.
     A target is expected to be a json file
@@ -130,7 +134,7 @@ class ObjectDetectionDataSet(torch.utils.data.Dataset):
         return imread(inp), read_json(tar)
 
 
-class ObjectDetectionDatasetSingle(torch.utils.data.Dataset):
+class ObjectDetectionDatasetSingle(Dataset):
     """
     Builds a dataset with images.
     inputs is expected to be a list of pathlib.Path objects.
