@@ -97,7 +97,7 @@ or `((8, 16, 32), (32, 64), (32, 64, 128, 256, 512), (200, 300))`
 
 Examples on how to create a Faster-RCNN model with pretrained ResNet backbone (ImageNet), examples are given in
 the [tests section](tests). Pay special attention to
-the [test_faster_RCNN.py::test_get_faster_rcnn_resnet](test_faster_RCNN.py). Recommendation: Run the test in debugger mode.
+the [test_faster_RCNN.py::test_get_faster_rcnn_resnet](tests/test_faster_RCNN.py). Recommendation: Run the test in debugger mode.
 
 ## Notes
 
