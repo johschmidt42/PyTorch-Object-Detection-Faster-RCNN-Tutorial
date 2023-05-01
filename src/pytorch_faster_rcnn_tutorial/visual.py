@@ -1,3 +1,4 @@
+import logging
 import pathlib
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
@@ -23,6 +24,8 @@ from pytorch_faster_rcnn_tutorial.utils import (
     read_json,
     save_json,
 )
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def make_bbox_napari(bbox: np.ndarray, reverse: bool = False) -> np.ndarray:

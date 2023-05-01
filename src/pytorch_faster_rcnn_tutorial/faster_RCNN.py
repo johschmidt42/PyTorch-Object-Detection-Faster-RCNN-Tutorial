@@ -1,3 +1,4 @@
+import logging
 from collections import OrderedDict
 from itertools import chain
 from typing import List, Optional, Tuple
@@ -19,6 +20,8 @@ from pytorch_faster_rcnn_tutorial.metrics.pascal_voc_evaluator import (
     get_pascalvoc_metrics,
 )
 from pytorch_faster_rcnn_tutorial.utils import from_dict_to_boundingbox
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def get_anchor_generator(

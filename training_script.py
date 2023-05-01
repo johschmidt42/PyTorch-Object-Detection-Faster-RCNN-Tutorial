@@ -1,4 +1,6 @@
+import logging
 import pathlib
+import sys
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -32,6 +34,13 @@ from pytorch_faster_rcnn_tutorial.utils import (
     collate_double,
     get_filenames_of_path,
     log_model_neptune,
+)
+
+# logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d:%(funcName)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 # root directory (project directory)

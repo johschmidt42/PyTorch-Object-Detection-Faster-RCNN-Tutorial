@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import pathlib
 from typing import List
@@ -16,6 +17,8 @@ from torchvision.ops import box_area, box_convert
 from pytorch_faster_rcnn_tutorial.metrics.bounding_box import BoundingBox
 from pytorch_faster_rcnn_tutorial.metrics.enumerators import BBFormat, BBType
 
+logger: logging.Logger = logging.getLogger(__name__)
+
 
 def get_filenames_of_path(path: pathlib.Path, ext: str = "*") -> List[pathlib.Path]:
     """
@@ -23,6 +26,7 @@ def get_filenames_of_path(path: pathlib.Path, ext: str = "*") -> List[pathlib.Pa
     """
     filenames = [file for file in path.glob(ext) if file.is_file()]
     assert len(filenames) > 0, f"No files found in path: {path}"
+    logger.info(f"Found {len(filenames)} files in {path}")
     return filenames
 
 

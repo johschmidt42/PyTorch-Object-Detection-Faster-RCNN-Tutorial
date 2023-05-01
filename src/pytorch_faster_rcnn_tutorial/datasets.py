@@ -1,3 +1,4 @@
+import logging
 import pathlib
 from multiprocessing import Pool
 from typing import Dict, List
@@ -14,6 +15,8 @@ from pytorch_faster_rcnn_tutorial.transformations import (
     map_class_to_int,
 )
 from pytorch_faster_rcnn_tutorial.utils import read_json
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class ObjectDetectionDataSet(Dataset):

@@ -1,3 +1,8 @@
+import logging
+
+logger: logging.Logger = logging.getLogger(__name__)
+
+
 # size => (width, height) of the image
 # box => (X1, X2, Y1, Y2) of the bounding box
 def convert_to_relative_values(size: tuple, box: tuple):

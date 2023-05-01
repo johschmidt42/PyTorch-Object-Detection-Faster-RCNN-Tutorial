@@ -1,4 +1,7 @@
+import logging
 from enum import Enum
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MethodAveragePrecision(Enum):

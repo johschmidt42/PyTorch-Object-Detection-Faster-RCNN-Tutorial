@@ -1,4 +1,5 @@
 # Imports
+import logging
 import pathlib
 from itertools import chain
 
@@ -10,6 +11,8 @@ from pytorch_faster_rcnn_tutorial.utils import (
     from_file_to_boundingbox,
     get_filenames_of_path,
 )
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 # root directory
 FOLDER_PATH = pathlib.Path(__file__).parent.absolute()

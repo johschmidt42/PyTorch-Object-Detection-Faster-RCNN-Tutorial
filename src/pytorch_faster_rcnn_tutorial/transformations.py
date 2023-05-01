@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 from typing import Callable, List
 
@@ -6,6 +7,8 @@ import numpy as np
 import torch
 from skimage.util import img_as_ubyte
 from torchvision.ops import nms
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def normalize_01(inp: np.ndarray) -> np.ndarray:
