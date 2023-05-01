@@ -1,5 +1,5 @@
 import pathlib
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 import albumentations
@@ -41,15 +41,16 @@ ROOT_PATH: pathlib.Path = pathlib.Path(__file__).parent.absolute()
 class NeptuneSettings(BaseSettings):
     """
     Reads the variables from the environment.
-    Errors will be raised if the variables are not set.
+    Errors will be raised if the required variables are not set.
     """
 
-    api_key: str = Field(..., env="NEPTUNE")
+    api_key: str = Field(default=..., env="NEPTUNE")
     OWNER: str = "johschmidt42"  # set your name here, e.g. johndoe22
     PROJECT: str = "Heads"  # set your project name here, e.g. Heads
     EXPERIMENT: str = "heads"  # set your experiment name here, e.g. heads
 
     class Config:
+        # this tells pydantic to read the variables from the .env file
         env_file = ".env"
 
 
@@ -60,8 +61,10 @@ class Parameters:
     """
 
     BATCH_SIZE: int = 2
-    CACHE: bool = False
-    SAVE_DIR: Optional[str] = None  # type: ignore # noqa: E501 # checkpoints will be saved to cwd (current working directory) if None
+    CACHE: bool = True
+    SAVE_DIR: Optional[
+        str
+    ] = None  # checkpoints will be saved to cwd (current working directory) if None
     LOG_MODEL: bool = False  # whether to log the model to neptune after training
     ACCELERATOR: Optional[str] = "auto"  # set to "gpu" if you want to use GPU
     LR: float = 0.001
@@ -79,7 +82,7 @@ class Parameters:
     IMG_MEAN: List = field(default_factory=lambda: [0.485, 0.456, 0.406])
     IMG_STD: List = field(default_factory=lambda: [0.229, 0.224, 0.225])
     IOU_THRESHOLD: float = 0.5
-    FAST_DEV_RUN: bool = False
+    FAST_DEV_RUN: bool = True
 
     def __post_init__(self):
         if self.SAVE_DIR is None:
@@ -210,13 +213,15 @@ def train():
     )
 
     # neptune logger (neptune-client)
-    neptune_logger = NeptuneLogger(
+    neptune_logger: NeptuneLogger = NeptuneLogger(
         api_key=neptune_settings.api_key,
         project=f"{neptune_settings.OWNER}/{neptune_settings.PROJECT}",  # use your neptune name here
         name=neptune_settings.PROJECT,
+        log_model_checkpoints=False,
     )
 
-    # assert neptune_logger.name  # http GET request to check if the project exists
+    # log hyperparameters
+    neptune_logger.log_hyperparams(asdict(parameters))
 
     # model init
     model: FasterRCNN = get_faster_rcnn_resnet(
@@ -229,7 +234,7 @@ def train():
         max_size=parameters.MAX_SIZE,
     )
 
-    # lightning init
+    # lightning model
     model: FasterRCNNLightning = FasterRCNNLightning(
         model=model, lr=parameters.LR, iou_threshold=parameters.IOU_THRESHOLD
     )
@@ -255,10 +260,10 @@ def train():
             early_stopping_callback,
         ],
         default_root_dir=parameters.SAVE_DIR,  # where checkpoints are saved to
-        log_every_n_steps=1,
-        num_sanity_val_steps=0,
+        log_every_n_steps=1,  # increase to reduce the amount of log flushes (lowers the overhead)
+        num_sanity_val_steps=0,  # set to 0 to skip sanity check
         max_epochs=parameters.MAXEPOCHS,
-        fast_dev_run=parameters.FAST_DEV_RUN,
+        fast_dev_run=parameters.FAST_DEV_RUN,  # set to True to test the pipeline with one batch and without validation, testing and logging
     )
 
     # start training
