@@ -26,7 +26,7 @@ class ObjectDetectionDataSet(Dataset):
     and should contain at least a 'boxes' and a 'labels' key.
     inputs and targets are expected to be a list of pathlib.Path objects.
 
-    In case your labels are strings, you can use mapping (a dict) to int-encode them.
+    In case your labels are strings, you can specify 'mapping' (a dict) to int-encode them.
     Returns a dict with the following keys: 'x', 'x_name', 'y', 'y_name'
     """
 

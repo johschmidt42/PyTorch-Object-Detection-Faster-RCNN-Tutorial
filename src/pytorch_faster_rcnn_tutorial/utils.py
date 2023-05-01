@@ -65,7 +65,7 @@ def collate_single(batch) -> tuple:
 
 
 def color_mapping_func(labels: list, mapping: dict):
-    """Maps an label (integer or string) to a color"""
+    """Maps a label (integer or string) to a color"""
     color_list = [mapping[value] for value in labels]
     return color_list
 
