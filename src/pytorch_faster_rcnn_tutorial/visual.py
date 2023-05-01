@@ -149,7 +149,6 @@ class DatasetViewer(ViewerBase):
         self.shape_layer = None
 
     def show_sample(self):
-
         # Get a sample from the dataset
         sample = self.get_sample_dataset(self.index)
 
@@ -561,7 +560,6 @@ class DatasetViewerSingle(DatasetViewer):
         self.shape_layer = None
 
     def show_sample(self):
-
         # Get a sample from the dataset
         sample = self.get_sample_dataset(self.index)
 
@@ -598,7 +596,6 @@ class Annotator(ViewerBase):
         annotation_ids: Optional[pathlib.Path] = None,
         color_mapping: Dict = {},
     ):
-
         self.image_ids = image_ids
         self.annotation_ids = annotation_ids
 

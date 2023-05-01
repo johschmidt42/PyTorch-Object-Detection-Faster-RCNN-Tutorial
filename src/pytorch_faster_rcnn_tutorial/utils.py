@@ -1,7 +1,7 @@
 import json
 import os
 import pathlib
-from typing import List, Union
+from typing import List
 
 import importlib_metadata
 import numpy as np

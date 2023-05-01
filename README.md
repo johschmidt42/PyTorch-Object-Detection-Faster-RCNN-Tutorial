@@ -5,8 +5,8 @@
 Based on the blog
 series ["Train your own object detector with Faster-RCNN & PyTorch"](https://johschmidt42.medium.com/train-your-own-object-detector-with-faster-rcnn-pytorch-8d3c759cfc70)
 
-![image1](images/image1.png)
-![image2](images/image2.png)
+![image1](docs/images/image1.png)
+![image2](docs/images/image2.png)
 
 ## Summary
 
@@ -97,8 +97,12 @@ or `((8, 16, 32), (32, 64), (32, 64, 128, 256, 512), (200, 300))`
 
 Examples on how to create a Faster-RCNN model with pretrained ResNet backbone (ImageNet), examples are given in
 the [tests section](tests). Pay special attention to
-the [test_faster_RCNN.py::test_get_faster_rcnn_resnet](tests/test_faster_RCNN.py). Recommendation: Run the test in debugger mode.
+the [test_faster_RCNN.py::test_get_faster_rcnn_resnet](tests/test_faster_RCNN.py).
+Recommendation: Run the test in debugger mode.
 
 ## Notes
 
 - Sliders in the [inference script](inference_script.ipynb) do not work right now due to dependency updates.
+- install neptune-client as described here: https://docs.neptune.ai/integrations/lightning/
+- Please note that the library "neptune-client" is deprecated but the migration to "neptune" has not finished yet.
+  Therefore, the library "neptune-client" is still used in this project.
