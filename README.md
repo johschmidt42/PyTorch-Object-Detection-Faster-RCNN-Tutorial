@@ -10,11 +10,12 @@ series ["Train your own object detector with Faster-RCNN & PyTorch"](https://joh
 
 ## Summary
 
-A complete jupyter notebook for training can be found in the [training script](training_script.ipynb). Alternatively,
-there is the same [training script](training_script.py) as a `.py` file.
+A complete **Python script** for training is provided with the [training script](training_script.py).
+Alternatively, there is a [jupyter-notebook](training_script.ipynb) available. TODO: Update Juptyer Notebook
 
-Besides the training script, I provide jupyter-notebooks to create & explore a dataset, run inference and visualize
-anchor boxes:
+Besides the training script, I provide jupyter-notebooks to **create & explore a dataset**, **run inference** and *
+*visualize
+anchor boxes**:
 
 - [Dataset exploration](dataset_exploration_script.ipynb)
 - [Data annotation](annotation_script.ipynb)
@@ -30,21 +31,25 @@ in [requirements.txt](requirements.txt).
 ## Installation
 
 1. Set up a new environment with an environment manager (recommended):
-    1. [conda](https://docs.conda.io/en/latest/miniconda.html):
-        1. `conda create --name faster-rcnn-tutorial -y`
-        2. `conda activate faster-rcnn-tutorial`
-        3. `conda install python=3.8 -y`
+    1. [poetry](https://python-poetry.org/):
+        1. `poetry env use python3.10`
     2. [venv](https://docs.python.org/3/library/venv.html):
         1. `python3 -m venv faster-rcnn-tutorial`
         2. `source faster-rcnn-tutorial/bin/activate`
-2. Install the libraries:
-   `pip install -r requirements.txt`
+    3. [conda](https://docs.conda.io/en/latest/miniconda.html):
+        1. `conda create --name faster-rcnn-tutorial -y`
+        2. `conda activate faster-rcnn-tutorial`
+        3. `conda install python=3.10 -y`
+
+2. Install the libraries with pip or poetry:
+    - `pip install -r requirements.txt`
+    - `poetry install`
 3. Start a jupyter server:
    `jupyter-notebook` OR `jupyter-lab`
 
 **Note**: This will install the CPU-version of torch. If you want to use a GPU or TPU, please refer to the instructions
 on the [PyTorch website](https://pytorch.org/). To check whether pytorch uses the nvidia gpu, check
-if `torch.cuda.is_available()` returns `True` in a python shell.
+if `torch.cuda.is_available()` returns `True` in a Python shell.
 
 **Windows user**: If you can not start jupyter-lab or jupyter-notebook on Windows because of
 `ImportError: DLL load failed while importing win32api`, try to run `conda install pywin32` with the conda package
@@ -58,8 +63,10 @@ These are the libraries that are used in this project:
 - Visualization software: Custom code with the image-viewer [Napari](https://napari.org/)
 - [OPTIONAL] Experiment tracking software/logging module: [Neptune](https://neptune.ai/)
 
-If you want to use [Neptune](https://neptune.ai/) for your own experiments, add the `NEPTUNE` environment variable to
-your system. Otherwise, deactivate it in the scripts.
+If you want to use [Neptune](https://neptune.ai/) for your own experiments, add the API-Key to the `NEPTUNE` variable in
+the [.env](.env) file. Otherwise, TODO: add instructions on how to remove Neptune from the code.
+
+TODO: Show how to make a test run
 
 ## Dataset
 
