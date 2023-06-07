@@ -174,7 +174,7 @@ class AlbumentationWrapper(Repr):
     A wrapper for the albumentation package.
     Bounding boxes are expected to be in xyxy format (pascal_voc).
     Bounding boxes cannot be larger than the spatial image's dimensions.
-    Use Clip() if your bounding boxes are outside of the image, before using this wrapper.
+    Use Clip() if your bounding boxes are outside the image, before using this wrapper.
     """
 
     def __init__(self, albumentation: Callable, format: str = "pascal_voc"):
