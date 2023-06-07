@@ -158,7 +158,7 @@ class ObjectDetectionDatasetSingle(Dataset):
         if self.use_cache:
             # Use multiprocessing to load images and targets into RAM
             with Pool() as pool:
-                self.cached_data = pool.starmap(self.read_images, inputs)
+                self.cached_data = pool.starmap(func=self.read_images, iterable=inputs)
 
     def __len__(self):
         return len(self.inputs)
@@ -168,10 +168,10 @@ class ObjectDetectionDatasetSingle(Dataset):
             x = self.cached_data[index]
         else:
             # Select the sample
-            input_ID = self.inputs[index]
+            input_id = self.inputs[index]
 
             # Load input and target
-            x = self.read_images(input_ID)
+            x = self.read_images(input_id)
 
         # From RGBA to RGB
         if x.shape[-1] == 4:
