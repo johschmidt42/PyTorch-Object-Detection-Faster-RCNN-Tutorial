@@ -3,13 +3,17 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import torch
 from napari.layers import Shapes
+from overrides import overrides
 from torch.utils.data import Dataset
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from torchvision.ops import box_convert
 
 from pytorch_faster_rcnn_tutorial.anchor_generator import get_anchor_boxes
-from pytorch_faster_rcnn_tutorial.viewers.dataset_viewer import DatasetViewer, make_bbox_napari
 from pytorch_faster_rcnn_tutorial.transformations import re_normalize
+from pytorch_faster_rcnn_tutorial.viewers.dataset_viewer import (
+    DatasetViewer,
+    make_bbox_napari,
+)
 
 
 def get_center_bounding_box(boxes: torch.tensor):
@@ -91,6 +95,7 @@ class AnchorViewer(DatasetViewer):
     def transform_boxes(boxes):
         return [make_bbox_napari(box) for box in boxes]
 
+    @overrides
     def get_data(self, sample) -> Dict[str, Any]:
         """
         Returns the image for the current sample.
@@ -100,6 +105,7 @@ class AnchorViewer(DatasetViewer):
 
         return {"data": data, "name": "Image"}
 
+    @overrides
     def get_target(self, sample) -> Dict[str, Any]:
         """
         Returns the anchor boxes for the current sample.

@@ -3,12 +3,16 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from napari.layers import Shapes
+from overrides import overrides
 from torch.utils.data import Dataset
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
-from pytorch_faster_rcnn_tutorial.viewers.dataset_viewer import DatasetViewer, make_bbox_napari
 from pytorch_faster_rcnn_tutorial.transformations import re_normalize
 from pytorch_faster_rcnn_tutorial.utils import color_mapping_func
+from pytorch_faster_rcnn_tutorial.viewers.dataset_viewer import (
+    DatasetViewer,
+    make_bbox_napari,
+)
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -32,6 +36,7 @@ class ObjectDetectionViewer(DatasetViewer):
         # rcnn_transformation
         self.rcnn_transform: Optional[GeneralizedRCNNTransform] = rcnn_transform
 
+    @overrides
     def get_data(self, sample: Dict[str, Any]) -> Dict[str, Any]:
         """
         Get the data from the sample and transform it to be napari compatible.
@@ -54,6 +59,7 @@ class ObjectDetectionViewer(DatasetViewer):
 
         return {"data": data, "name": name}
 
+    @overrides
     def get_target(self, sample: Dict[str, Any]) -> Dict[str, Any]:
         """
         Get the target from the sample and transform it to be napari compatible.
