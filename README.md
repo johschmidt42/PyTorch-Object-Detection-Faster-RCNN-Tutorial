@@ -41,14 +41,14 @@ server:
         2. `conda activate faster-rcnn-tutorial`
         3. `conda install python=3.10 -y`
 
-2. Install the libraries with pip or poetry:
+2. Install the libraries with **pip** or **poetry**:
     1. [poetry](https://python-poetry.org/):
         1. `poetry install` (poetry.lock)
     2. [pip](https://pip.pypa.io/en/stable/) (including conda):
         1. `pip install -r requirements.txt` (requirements.txt)
 
 3. Start a jupyter server:
-    1. `jupyter-notebook` (not jupyter-lab, because of a dependency issue with the neptune-client)
+    1. `jupyter-notebook` (**not jupyter-lab**, because of a dependency issue with the neptune-client<1.0.0)
 
 **Note**: This will install the CPU-version of torch.
 If you want to use a GPU or TPU, please refer to the instructions
