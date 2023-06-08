@@ -36,10 +36,13 @@ from pytorch_faster_rcnn_tutorial.utils import (
     log_model_neptune,
 )
 
+logger: logging.Logger = logging.getLogger(__name__)
+
 # logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d:%(funcName)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
@@ -91,7 +94,7 @@ class Parameters:
     IMG_MEAN: List = field(default_factory=lambda: [0.485, 0.456, 0.406])
     IMG_STD: List = field(default_factory=lambda: [0.229, 0.224, 0.225])
     IOU_THRESHOLD: float = 0.5
-    FAST_DEV_RUN: bool = True
+    FAST_DEV_RUN: bool = False
 
     def __post_init__(self):
         if self.SAVE_DIR is None:
@@ -298,7 +301,7 @@ def train():
 
     # stop logger
     neptune_logger.experiment.stop()
-    print("Finished")
+    logger.info("Training finished")
 
 
 if __name__ == "__main__":
