@@ -43,9 +43,9 @@ server:
 
 2. Install the libraries with pip or poetry:
     1. [poetry](https://python-poetry.org/):
-        1. `poetry install`
+        1. `poetry install` (poetry.lock)
     2. [pip](https://pip.pypa.io/en/stable/) (including conda):
-        1. `pip install -r requirements.txt`
+        1. `pip install -r requirements.txt` (requirements.txt)
 
 3. Start a jupyter server:
     1. `jupyter-notebook` (not jupyter-lab, because of a dependency issue with the neptune-client)
