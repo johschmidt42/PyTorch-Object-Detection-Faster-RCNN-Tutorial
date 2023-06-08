@@ -24,6 +24,7 @@ urllib3 = "1.26.16"
 jsonschema = "3.2.0"
 neptune-client = "0.16.8"
 neptune-contrib = "0.28.1"
+notebook = "^6.5.4"
 
 
 [tool.poetry.group.test.dependencies]
