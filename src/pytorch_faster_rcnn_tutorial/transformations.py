@@ -24,8 +24,16 @@ def normalize(inp: np.ndarray, mean: float, std: float) -> np.ndarray:
 
 
 def re_normalize(inp: np.ndarray, low: int = 0, high: int = 255) -> np.ndarray:
-    """Normalize the data to a certain range. Default: [0-255]"""
-    inp_out = img_as_ubyte(inp)
+    """
+    Normalize the data to a certain range. Default: [0-255]
+    """
+
+    # Normalize the array to the range [0, 1]
+    # (otherwise img_as_ubyte will throw an error)
+    inp_normalized = (inp - inp.min()) / (inp.max() - inp.min())
+
+    # Scale the array to the range [0, 255]
+    inp_out = img_as_ubyte(inp_normalized)
     return inp_out
 
 
