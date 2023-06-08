@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from napari.layers import Shapes
-from overrides import overrides
 from torch.utils.data import Dataset
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
