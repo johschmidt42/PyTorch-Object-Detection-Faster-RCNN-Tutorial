@@ -95,7 +95,6 @@ class AnchorViewer(DatasetViewer):
     def transform_boxes(boxes):
         return [make_bbox_napari(box) for box in boxes]
 
-    @overrides
     def get_data(self, sample) -> Dict[str, Any]:
         """
         Returns the image for the current sample.
@@ -105,7 +104,6 @@ class AnchorViewer(DatasetViewer):
 
         return {"data": data, "name": "Image"}
 
-    @overrides
     def get_target(self, sample) -> Dict[str, Any]:
         """
         Returns the anchor boxes for the current sample.

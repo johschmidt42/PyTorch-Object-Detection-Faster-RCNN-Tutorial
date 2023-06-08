@@ -36,7 +36,6 @@ class ObjectDetectionViewer(DatasetViewer):
         # rcnn_transformation
         self.rcnn_transform: Optional[GeneralizedRCNNTransform] = rcnn_transform
 
-    @overrides
     def get_data(self, sample: Dict[str, Any]) -> Dict[str, Any]:
         """
         Get the data from the sample and transform it to be napari compatible.
@@ -59,7 +58,6 @@ class ObjectDetectionViewer(DatasetViewer):
 
         return {"data": data, "name": name}
 
-    @overrides
     def get_target(self, sample: Dict[str, Any]) -> Dict[str, Any]:
         """
         Get the target from the sample and transform it to be napari compatible.
