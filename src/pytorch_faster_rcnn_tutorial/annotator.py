@@ -167,19 +167,21 @@ class Annotator(DatasetViewer):
                 boxes_per_image.append(boxes_np)
                 labels_per_image.append(np.repeat(np.array([label]), num_labels))
 
-            boxes_per_image = np.concatenate(boxes_per_image, axis=0)
-            labels_per_image = np.concatenate(labels_per_image, axis=0)
+            if boxes_per_image:
+                boxes_per_image = np.concatenate(boxes_per_image, axis=0)
+                labels_per_image = np.concatenate(labels_per_image, axis=0)
 
-            boxes_per_image = [
-                make_bbox_napari(box, reverse=True).tolist() for box in boxes_per_image
-            ]
+                boxes_per_image = [
+                    make_bbox_napari(box, reverse=True).tolist()
+                    for box in boxes_per_image
+                ]
 
-            labels = labels_per_image.tolist()
+                labels = labels_per_image.tolist()
 
-            name: pathlib.Path = pathlib.Path(image_name).with_suffix(".json")
+                name: pathlib.Path = pathlib.Path(image_name).with_suffix(".json")
 
-            file: dict = {"labels": labels, "boxes": boxes_per_image}
+                file: dict = {"labels": labels, "boxes": boxes_per_image}
 
-            save_json(file, path=directory / name)
+                save_json(file, path=directory / name)
 
-            logger.info(f"Annotation {str(name)} saved to {directory}")
+                logger.info(f"Annotation {str(name)} saved to {directory}")
