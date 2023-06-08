@@ -1,20 +1,21 @@
 import json
+import logging
 import os
 import pathlib
-from typing import List, Union
+from typing import Dict, List, Union
 
 import importlib_metadata
 import numpy as np
 import pandas as pd
 import torch
-from IPython import get_ipython
-from neptunecontrib.api import log_table
 from torch.utils.data import Dataset
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from torchvision.ops import box_area, box_convert
 
 from pytorch_faster_rcnn_tutorial.metrics.bounding_box import BoundingBox
 from pytorch_faster_rcnn_tutorial.metrics.enumerators import BBFormat, BBType
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def get_filenames_of_path(path: pathlib.Path, ext: str = "*") -> List[pathlib.Path]:
@@ -23,6 +24,7 @@ def get_filenames_of_path(path: pathlib.Path, ext: str = "*") -> List[pathlib.Pa
     """
     filenames = [file for file in path.glob(ext) if file.is_file()]
     assert len(filenames) > 0, f"No files found in path: {path}"
+    logger.info(f"Found {len(filenames)} files in {path}")
     return filenames
 
 
@@ -60,16 +62,14 @@ def collate_single(batch) -> tuple:
     return x, x_name
 
 
-def color_mapping_func(labels: list, mapping: dict):
-    """Maps an label (integer or string) to a color"""
-    color_list = [mapping[value] for value in labels]
+def color_mapping_func(
+    labels: List[Union[int, str]], mapping: Dict[Union[int, str], str]
+) -> List[str]:
+    """
+    Maps a label (integer or string) to a color
+    """
+    color_list: List[str] = [mapping[value] for value in labels]
     return color_list
-
-
-def enable_gui_qt():
-    """Performs the magic command %gui qt"""
-    ipython = get_ipython()
-    ipython.magic("gui qt")
 
 
 def stats_dataset(
@@ -126,7 +126,9 @@ def stats_dataset(
 def from_file_to_boundingbox(
     file_name: pathlib.Path, groundtruth: bool = True
 ) -> List[BoundingBox]:
-    """Returns a list of BoundingBox objects from groundtruth or prediction."""
+    """
+    Returns a list of BoundingBox objects from groundtruth or prediction.
+    """
     with open(file_name) as json_file:
         file = json.load(json_file)
         labels = file["labels"]
@@ -149,7 +151,9 @@ def from_file_to_boundingbox(
 
 
 def from_dict_to_boundingbox(file: dict, name: str, groundtruth: bool = True):
-    """Returns list of BoundingBox objects from groundtruth or prediction."""
+    """
+    Returns list of BoundingBox objects from groundtruth or prediction.
+    """
     labels = file["labels"]
     boxes = file["boxes"]
     scores = np.array(file["scores"].cpu()) if not groundtruth else [None] * len(boxes)
@@ -170,7 +174,11 @@ def from_dict_to_boundingbox(file: dict, name: str, groundtruth: bool = True):
 
 
 def log_packages_neptune(neptune_logger):
-    """Uses the neptunecontrib.api to log the packages of the current python env."""
+    """
+    Uses the neptunecontrib.api to log the packages of the current python env.
+    """
+    from neptunecontrib.api import log_table
+
     dists = importlib_metadata.distributions()
     packages = {
         idx: (dist.metadata["Name"], dist.version) for idx, dist in enumerate(dists)
@@ -184,7 +192,11 @@ def log_packages_neptune(neptune_logger):
 
 
 def log_mapping_neptune(mapping: dict, neptune_logger):
-    """Uses the neptunecontrib.api to log a class mapping."""
+    """
+    Uses the neptunecontrib.api to log a class mapping.
+    """
+    from neptunecontrib.api import log_table
+
     mapping_df = pd.DataFrame.from_dict(
         mapping, orient="index", columns=["class_value"]
     )
@@ -197,7 +209,9 @@ def log_model_neptune(
     name: str,
     neptune_logger,
 ):
-    """Saves the model to disk, uploads it to neptune and removes it again."""
+    """
+    Saves the model to disk, uploads it to neptune and removes it again.
+    """
     checkpoint = torch.load(checkpoint_path)
     model = checkpoint["hyper_parameters"]["model"]
     torch.save(model.state_dict(), save_directory / name)
@@ -210,3 +224,7 @@ def log_model_neptune(
 def log_checkpoint_neptune(checkpoint_path: pathlib.Path, neptune_logger):
     neptune_logger.experiment.set_property("checkpoint_name", checkpoint_path.name)
     neptune_logger.experiment.log_artifact(str(checkpoint_path))
+
+
+def some_function():
+    print("44")

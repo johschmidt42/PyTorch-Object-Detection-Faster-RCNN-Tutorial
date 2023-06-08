@@ -1,11 +1,14 @@
+import logging
 from functools import partial
 from typing import Callable, List
 
 import albumentations as A
 import numpy as np
 import torch
-from sklearn.externals._pilutil import bytescale
+from skimage.util import img_as_ubyte
 from torchvision.ops import nms
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def normalize_01(inp: np.ndarray) -> np.ndarray:
@@ -21,8 +24,16 @@ def normalize(inp: np.ndarray, mean: float, std: float) -> np.ndarray:
 
 
 def re_normalize(inp: np.ndarray, low: int = 0, high: int = 255) -> np.ndarray:
-    """Normalize the data to a certain range. Default: [0-255]"""
-    inp_out = bytescale(inp, low=low, high=high)
+    """
+    Normalize the data to a certain range. Default: [0-255]
+    """
+
+    # Normalize the array to the range [0, 1]
+    # (otherwise img_as_ubyte will throw an error)
+    inp_normalized = (inp - inp.min()) / (inp.max() - inp.min())
+
+    # Scale the array to the range [0, 255]
+    inp_out = img_as_ubyte(inp_normalized)
     return inp_out
 
 
@@ -34,7 +45,6 @@ def clip_bbs(inp: np.ndarray, bbs: np.ndarray) -> np.array:
     """
 
     def clip(value: int, max: int):
-
         if value >= max - 1:
             value = max - 1
         elif value <= 0:
@@ -172,7 +182,7 @@ class AlbumentationWrapper(Repr):
     A wrapper for the albumentation package.
     Bounding boxes are expected to be in xyxy format (pascal_voc).
     Bounding boxes cannot be larger than the spatial image's dimensions.
-    Use Clip() if your bounding boxes are outside of the image, before using this wrapper.
+    Use Clip() if your bounding boxes are outside the image, before using this wrapper.
     """
 
     def __init__(self, albumentation: Callable, format: str = "pascal_voc"):

@@ -1,3 +1,4 @@
+import logging
 import pathlib
 from multiprocessing import Pool
 from typing import Dict, List
@@ -15,6 +16,8 @@ from pytorch_faster_rcnn_tutorial.transformations import (
 )
 from pytorch_faster_rcnn_tutorial.utils import read_json
 
+logger: logging.Logger = logging.getLogger(__name__)
+
 
 class ObjectDetectionDataSet(Dataset):
     """
@@ -23,7 +26,7 @@ class ObjectDetectionDataSet(Dataset):
     and should contain at least a 'boxes' and a 'labels' key.
     inputs and targets are expected to be a list of pathlib.Path objects.
 
-    In case your labels are strings, you can use mapping (a dict) to int-encode them.
+    In case your labels are strings, you can specify 'mapping' (a dict) to int-encode them.
     Returns a dict with the following keys: 'x', 'x_name', 'y', 'y_name'
     """
 
@@ -155,7 +158,7 @@ class ObjectDetectionDatasetSingle(Dataset):
         if self.use_cache:
             # Use multiprocessing to load images and targets into RAM
             with Pool() as pool:
-                self.cached_data = pool.starmap(self.read_images, inputs)
+                self.cached_data = pool.starmap(func=self.read_images, iterable=inputs)
 
     def __len__(self):
         return len(self.inputs)
@@ -165,10 +168,10 @@ class ObjectDetectionDatasetSingle(Dataset):
             x = self.cached_data[index]
         else:
             # Select the sample
-            input_ID = self.inputs[index]
+            input_id = self.inputs[index]
 
             # Load input and target
-            x = self.read_images(input_ID)
+            x = self.read_images(input_id)
 
         # From RGBA to RGB
         if x.shape[-1] == 4:

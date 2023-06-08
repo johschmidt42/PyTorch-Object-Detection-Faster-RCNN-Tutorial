@@ -1,3 +1,4 @@
+import logging
 from collections import OrderedDict
 from itertools import chain
 from typing import List, Optional, Tuple
@@ -19,6 +20,8 @@ from pytorch_faster_rcnn_tutorial.metrics.pascal_voc_evaluator import (
     get_pascalvoc_metrics,
 )
 from pytorch_faster_rcnn_tutorial.utils import from_dict_to_boundingbox
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def get_anchor_generator(
@@ -176,6 +179,11 @@ class FasterRCNNLightning(pl.LightningModule):
         # Saves model arguments to the ``hparams`` attribute.
         self.save_hyperparameters()
 
+        # outputs
+        self.training_step_outputs = []
+        self.validation_step_outputs = []
+        self.test_step_outputs = []
+
     def forward(self, x):
         self.model.eval()
         return self.model(x)
@@ -209,12 +217,16 @@ class FasterRCNNLightning(pl.LightningModule):
         ]
         pred_boxes = list(chain(*pred_boxes))
 
-        return {"pred_boxes": pred_boxes, "gt_boxes": gt_boxes}
+        out = {"pred_boxes": pred_boxes, "gt_boxes": gt_boxes}
 
-    def validation_epoch_end(self, outs):
-        gt_boxes = [out["gt_boxes"] for out in outs]
+        self.validation_step_outputs.append(out)
+
+        return out
+
+    def on_validation_epoch_end(self):
+        gt_boxes = [out["gt_boxes"] for out in self.validation_step_outputs]
         gt_boxes = list(chain(*gt_boxes))
-        pred_boxes = [out["pred_boxes"] for out in outs]
+        pred_boxes = [out["pred_boxes"] for out in self.validation_step_outputs]
         pred_boxes = list(chain(*pred_boxes))
 
         metric = get_pascalvoc_metrics(
@@ -250,12 +262,16 @@ class FasterRCNNLightning(pl.LightningModule):
         ]
         pred_boxes = list(chain(*pred_boxes))
 
-        return {"pred_boxes": pred_boxes, "gt_boxes": gt_boxes}
+        out = {"pred_boxes": pred_boxes, "gt_boxes": gt_boxes}
 
-    def test_epoch_end(self, outs):
-        gt_boxes = [out["gt_boxes"] for out in outs]
+        self.test_step_outputs.append(out)
+
+        return out
+
+    def on_test_epoch_end(self):
+        gt_boxes = [out["gt_boxes"] for out in self.test_step_outputs]
         gt_boxes = list(chain(*gt_boxes))
-        pred_boxes = [out["pred_boxes"] for out in outs]
+        pred_boxes = [out["pred_boxes"] for out in self.test_step_outputs]
         pred_boxes = list(chain(*pred_boxes))
 
         metric = get_pascalvoc_metrics(

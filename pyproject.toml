@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "pytorch-faster-rcnn-tutorial"
+version = "0.2.0"
+description = ""
+authors = ["Johannes Schmidt <johannes.schmidt.vik@gmail.com>"]
+readme = "README.md"
+packages = [{include = "pytorch_faster_rcnn_tutorial", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+napari = {extras = ["pyqt5"], version = "0.4.17"}
+scikit-image = "^0.21.0"
+pydantic = {extras = ["dotenv"], version = "^1.10.9"}
+numpy = "^1.24.3"
+pandas = "^2.0.2"
+torch = "^2.0.1"
+torchvision = "^0.15.2"
+torchinfo = "^1.8.0"
+matplotlib = "^3.7.1"
+albumentations = "^1.3.0"
+scikit-learn = "^1.2.2"
+lightning = "^2.0.3"
+urllib3 = "1.26.16"
+jsonschema = "3.2.0"
+neptune-client = "0.16.8"
+neptune-contrib = "0.28.1"
+notebook = "^6.5.4"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.3.1"
+pytest-sugar = "^0.9.7"
+pytest-cov = "^4.0.0"
+pytest-qt = "^4.2.0"
+
+
+[tool.poetry.group.lint.dependencies]
+black = {extras = ["jupyter"], version = "^23.3.0"}
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = ["src", "tests"]
+addopts = "-p no:cacheprovider" # deactivating pytest caching.
+
+[tool.coverage.report]
+exclude_lines = [
+    'if __name__ == "__main__":'
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

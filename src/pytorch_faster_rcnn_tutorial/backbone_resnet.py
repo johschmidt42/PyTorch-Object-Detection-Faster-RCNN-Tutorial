@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 from typing import Dict, List, Optional
 
@@ -8,6 +9,8 @@ from torchvision.models import resnet
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops import misc as misc_nn_ops
 from torchvision.ops.feature_pyramid_network import ExtraFPNBlock, FeaturePyramidNetwork
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class ResNetBackbones(Enum):

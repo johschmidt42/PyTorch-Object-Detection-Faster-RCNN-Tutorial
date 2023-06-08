@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 import torch
@@ -5,6 +6,8 @@ from torch import nn
 from torch.jit.annotations import Dict, List, Optional
 from torchvision.models.detection.image_list import ImageList
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class AnchorGenerator(nn.Module):
