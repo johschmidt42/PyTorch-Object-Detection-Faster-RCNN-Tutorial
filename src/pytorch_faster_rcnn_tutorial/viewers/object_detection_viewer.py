@@ -177,3 +177,19 @@ class ObjectDetectionViewer(DatasetViewer):
         x, y = x.tensors[0], y[0]
 
         return {"x": x, "y": y, "x_name": x_name, "y_name": y_name}
+
+
+class ObjectDetectionViewerSingle(ObjectDetectionViewer):
+    @staticmethod
+    def _rcnn_transformer(
+        sample: Dict[str, Any], transform: GeneralizedRCNNTransform
+    ) -> Dict[str, Any]:
+        x, x_name = sample["x"], sample["x_name"]
+
+        x, _ = transform([x])
+        x, _ = x.tensors[0], _
+
+        return {"x": x, "x_name": x_name}
+
+    def get_target(self, sample: Dict[str, Any]) -> None:
+        return None

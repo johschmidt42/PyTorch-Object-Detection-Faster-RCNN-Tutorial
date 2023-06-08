@@ -136,9 +136,10 @@ class DatasetViewer(ABC):
             return self.viewer.add_image(**y)
         elif self.target_type == Shapes:
             # object detection -> 'Shapes' layer
-            shapes: Shapes = self.viewer.add_shapes(**y)
-            shapes.editable = False
-            return shapes
+            if y["data"]:
+                shapes: Shapes = self.viewer.add_shapes(**y)
+                shapes.editable = False
+                return shapes
         else:
             raise ValueError(f"Unknown target type: {self.target_type}")
 
