@@ -6,7 +6,7 @@ from napari.layers import Shapes
 from torch.utils.data import Dataset
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
-from pytorch_faster_rcnn_tutorial.dataset_viewer import DatasetViewer, make_bbox_napari
+from pytorch_faster_rcnn_tutorial.viewers.dataset_viewer import DatasetViewer, make_bbox_napari
 from pytorch_faster_rcnn_tutorial.transformations import re_normalize
 from pytorch_faster_rcnn_tutorial.utils import color_mapping_func
 
