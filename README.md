@@ -79,7 +79,7 @@ Please make sure that you meet these requirements:
 
 ## Dataset
 
-The [dataset](/Users/johannes/workspace/PyTorch-Object-Detection-Faster-RCNN-Tutorial/pytorch_faster_rcnn_tutorial/data)
+The [dataset](https://github.com/johschmidt42/PyTorch-Object-Detection-Faster-RCNN-Tutorial/tree/master/src/pytorch_faster_rcnn_tutorial/data/heads/input)
 consists of 20 selfie-images randomly selected from the internet.
 
 ## Faster-RCNN model
