@@ -79,14 +79,14 @@ Please make sure that you meet these requirements:
 
 ## Dataset
 
-The [dataset](/Users/johannes/workspace/PyTorch-Object-Detection-Faster-RCNN-Tutorial/pytorch_faster_rcnn_tutorial/data)
+The [dataset](src/pytorch_faster_rcnn_tutorial/data)
 consists of 20 selfie-images randomly selected from the internet.
 
 ## Faster-RCNN model
 
 Most of the model's code is based on PyTorch's Faster-RCNN implementation. Metrics can be computed based on
 the [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (**V**isual **O**bject **C**lasses) evaluator in
-the [metrics section](pytorch_faster_rcnn_tutorial/metrics).
+the [metrics section](src/pytorch_faster_rcnn_tutorial/metrics).
 
 ## Anchor Sizes/Aspect Ratios
 
